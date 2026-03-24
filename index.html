@@ -1,46 +1,439 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8"/>
-<title>Calcio Italiano Live</title>
-<style>
-body{background:#081523;color:white;font-family:Arial;padding:20px}
-.card{background:#0f233c;padding:20px;border-radius:12px;margin-bottom:10px}
-button{padding:10px;margin:5px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calcio Italiano Live</title>
+  <style>
+    :root{
+      --bg:#06121f; --bg2:#0b1a2d; --panel:#0f233c; --panel2:#143151;
+      --text:#f6f8fc; --muted:#9fb2ca; --line:#284b74; --green:#24c16b;
+      --yellow:#ffcf57; --red:#ff6262; --shadow:0 18px 42px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,var(--bg),#081523 42%,var(--bg));color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}
+    button,input,select{font:inherit}
+    .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+    .sidebar{background:linear-gradient(180deg,#07111e,#091523);border-right:1px solid rgba(255,255,255,.06);padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+    .brand{display:flex;gap:12px;align-items:center;padding:6px 8px 18px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:16px}
+    .logo{width:44px;height:44px;border-radius:14px;position:relative;overflow:hidden;background:linear-gradient(135deg,#11223a,#0a1628);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}
+    .logo:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#1ed760 0 33%,#fff 33% 66%,#ff4d4d 66% 100%)}
+    .logo:after{content:"";position:absolute;inset:7px;border-radius:11px;background:#081321}
+    .logo b{position:absolute;inset:0;display:grid;place-items:center;z-index:1;font-weight:800}
+    .brand h1{margin:0;font-size:1.08rem}
+    .brand small{display:block;color:var(--muted);margin-top:2px}
+    .section-label{font-size:.78rem;color:#7cf2a8;text-transform:uppercase;letter-spacing:.16em;font-weight:700;padding:10px 8px}
+    .menu{display:grid;gap:6px}
+    .menu button{text-align:left;background:#0a1830;border:1px solid rgba(255,255,255,.06);color:var(--text);padding:12px 14px;border-radius:14px;cursor:pointer}
+    .menu button.active{background:#0f2846;border-color:#37689f}
+    .menu .soon::after{content:"PRESTO";float:right;font-size:.7rem;color:#9fb2ca}
+    .content{padding:22px 22px 40px}
+    .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:18px}
+    .card{background:linear-gradient(180deg,rgba(17,35,62,.96),rgba(11,27,49,.96));border:1px solid rgba(255,255,255,.06);border-radius:22px;box-shadow:var(--shadow)}
+    .hero-main,.hero-side,.panel{padding:22px}
+    h1{margin:0 0 8px;font-size:2.6rem}
+    h2{margin:0 0 10px;font-size:1.25rem}
+    p{margin:0;color:#d4dfee;line-height:1.6}
+    .muted{color:var(--muted)} .small{font-size:.92rem}
+    .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);font-size:.9rem}
+    .kpi{display:grid;gap:10px}
+    .kpi .row{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04)}
+    .toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs button{background:#0b1930;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer}
+    .tabs button.active{background:var(--panel2)}
+    .search{background:#081625;border:1px solid var(--line);color:var(--text);border-radius:14px;padding:10px 14px;min-width:260px;outline:none}
+    .list{display:grid;gap:12px}
+    .match{padding:16px 18px;cursor:pointer}
+    .match:hover{border-color:#3e78b7}
+    .rowflex{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .title{font-size:1.15rem;font-weight:700;margin-top:6px}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .badge{padding:6px 10px;border-radius:999px;font-size:.82rem;font-weight:700;background:rgba(255,255,255,.08)}
+    .live{background:rgba(255,98,98,.14);color:#ff9797}
+    .finished{background:rgba(35,193,106,.14);color:#8ef2b8}
+    .scheduled{background:rgba(255,207,87,.14);color:#ffe18a}
+    .notice{padding:16px 18px}
+    .grid{display:grid;gap:14px}
+    .grid2{grid-template-columns:1.2fr .8fr}
+    .section{padding:20px}
+    .event,.lineup,.stat{padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
+    .event{margin-bottom:10px}
+    .bar{height:10px;background:#091625;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+    .fill{height:100%;background:linear-gradient(90deg,#22c55e,#6ee7b7)}
+    .players{display:grid;gap:8px}
+    .player{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
+    .back{display:inline-block;margin-bottom:12px;color:#c7d8eb;cursor:pointer}
+    .empty-cat{padding:18px 20px}
+    .hidden{display:none}
+    @media (max-width:1024px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.hero,.grid2{grid-template-columns:1fr}}
+    @media (max-width:700px){h1{font-size:2rem}.search{min-width:100%}}
+  </style>
 </head>
 <body>
-<h1>Serie A Live</h1>
-<div>
-<button onclick="load()">Carica Partite</button>
-</div>
 <div id="app"></div>
-
 <script>
-async function load(){
-  document.getElementById('app').innerHTML = "Caricamento...";
-  try{
-    const res = await fetch('/api/fixtures?competition=serie-a');
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
+const COMPETITIONS = [
+  { name:"Serie A", code:"serie-a", live:true },
+  { name:"Serie B", code:"serie-b", live:true },
+  { name:"Serie C - Girone A", live:false },
+  { name:"Serie C - Girone B", live:false },
+  { name:"Serie C - Girone C", live:false },
+  { name:"Serie C - Play Off Promozione", live:false },
+  { name:"Serie C - Play Out", live:false },
+  { name:"Serie D - Girone A", live:false },
+  { name:"Serie D - Girone B", live:false },
+  { name:"Serie D - Girone C", live:false },
+  { name:"Serie D - Girone D", live:false },
+  { name:"Serie D - Girone E", live:false },
+  { name:"Serie D - Girone F", live:false },
+  { name:"Serie D - Girone G", live:false },
+  { name:"Serie D - Girone H", live:false },
+  { name:"Serie D - Girone I", live:false },
+  { name:"Serie D - Fase Vincitori", live:false },
+  { name:"Coppa Italia", code:"coppa-italia", live:true },
+  { name:"Coppa Italia Serie C", live:false },
+  { name:"Coppa Italia Serie D", live:false },
+  { name:"Supercoppa", live:false },
+  { name:"Supercoppa (Serie C)", live:false },
+  { name:"Primavera 1", live:false },
+  { name:"Primavera 2", live:false },
+  { name:"Coppa Italia Primavera", live:false },
+  { name:"Supercoppa Primavera", live:false },
+  { name:"Serie A Femminile", live:false },
+  { name:"Serie B Femminile", live:false },
+  { name:"Coppa Italia Femminile", live:false },
+  { name:"Serie A Cup Women", live:false },
+  { name:"Supercoppa Femminile", live:false }
+];
 
-    const list = data.fixtures || [];
-    if(!list.length){
-      document.getElementById('app').innerHTML = "Nessuna partita trovata";
-      return;
-    }
+const state = {
+  competition: "Serie A",
+  filter: "all",
+  search: "",
+  fixtures: [],
+  loading: false,
+  error: "",
+  selected: null
+};
 
-    document.getElementById('app').innerHTML = list.map(m => `
-      <div class="card">
-        ${m.teams.home.name} vs ${m.teams.away.name}<br>
-        ${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}
-      </div>
-    `).join("");
-
-  }catch(e){
-    document.getElementById('app').innerHTML = "Errore: " + e.message;
-  }
+function esc(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+function getComp(){ return COMPETITIONS.find(c => c.name === state.competition); }
+function localDate(d){ return new Date(d).toLocaleString("it-IT", { dateStyle:"short", timeStyle:"short" }); }
+function statusClass(short){
+  if (["1H","2H","HT","ET","BT","P","LIVE","INT"].includes(short)) return "live";
+  if (["FT","AET","PEN"].includes(short)) return "finished";
+  return "scheduled";
 }
+function statusLabel(m){
+  const s = m.fixture.status.short;
+  if (["1H","2H","HT","ET","BT","P","LIVE","INT"].includes(s)) return m.fixture.status.elapsed ? `LIVE ${m.fixture.status.elapsed}'` : "LIVE";
+  if (["FT","AET","PEN"].includes(s)) return "Finale";
+  return m.fixture.status.long || "Programm.";
+}
+function iconForEvent(type, detail){
+  const txt = `${type||''} ${detail||''}`.toLowerCase();
+  if(txt.includes("goal")) return "⚽";
+  if(txt.includes("yellow")) return "🟨";
+  if(txt.includes("red")) return "🟥";
+  if(txt.includes("penalty")) return "⚽";
+  if(txt.includes("subst")) return "🔁";
+  return "•";
+}
+
+function sidebar(){
+  return `
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo"><b>CI</b></div>
+        <div><h1 style="font-size:1.05rem;margin:0">Calcio Italiano</h1><small>live vero su backend</small></div>
+      </div>
+      <div class="section-label">Italia</div>
+      <div class="menu">
+        ${COMPETITIONS.map(c => `
+          <button class="${state.competition===c.name?'active':''} ${c.live?'':'soon'}" onclick="selectCompetition('${esc(c.name)}')">
+            ${esc(c.name)}
+          </button>
+        `).join("")}
+      </div>
+    </aside>
+  `;
+}
+
+function topHero(){
+  const comp = getComp();
+  return `
+    <div class="hero">
+      <div class="card hero-main">
+        <div class="muted small">${comp.live ? "Dati reali da API-Football via backend" : "Categoria predisposta, live in arrivo"}</div>
+        <h1>${esc(comp.name)}</h1>
+        <p>${comp.live
+          ? "Lista partite, filtri, dettaglio match, eventi, statistiche e formazioni quando disponibili."
+          : "Questa categoria è già pronta nel menu. La colleghiamo appena completiamo le competizioni principali senza sprecare richieste."}</p>
+        <div class="pills">
+          <span class="pill">Backend sicuro</span>
+          <span class="pill">API key protetta</span>
+          <span class="pill">${comp.live ? "Live attivo" : "Presto"}</span>
+        </div>
+      </div>
+      <div class="card hero-side">
+        <h2>Stato</h2>
+        <div class="kpi">
+          <div class="row"><strong>Competizione</strong><div class="muted small">${esc(comp.name)}</div></div>
+          <div class="row"><strong>Caricamento</strong><div class="muted small">${state.loading ? "In corso..." : (state.error || "Pronto")}</div></div>
+          <div class="row"><strong>Copertura live</strong><div class="muted small">${comp.live ? "Attiva" : "Non collegata ancora"}</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function filteredFixtures(){
+  let list = [...state.fixtures];
+  if(state.filter==="live") list = list.filter(m => ["1H","2H","HT","ET","BT","P","LIVE","INT"].includes(m.fixture.status.short));
+  else if(state.filter==="finished") list = list.filter(m => ["FT","AET","PEN"].includes(m.fixture.status.short));
+  else if(state.filter==="next") list = list.filter(m => !["FT","AET","PEN","1H","2H","HT","ET","BT","P","LIVE","INT"].includes(m.fixture.status.short));
+  if(state.search.trim()){
+    const q = state.search.toLowerCase();
+    list = list.filter(m => `${m.teams.home.name} ${m.teams.away.name} ${m.fixture.venue?.name || ''}`.toLowerCase().includes(q));
+  }
+  return list;
+}
+
+function fixtureList(){
+  const comp = getComp();
+  if(!comp.live){
+    return `<div class="card empty-cat">
+      <strong>${esc(comp.name)}</strong>
+      <div class="muted" style="margin-top:8px">Non è ancora collegata live in questa versione. Prima consolidiamo bene Serie A, Serie B e Coppa Italia.</div>
+    </div>`;
+  }
+  if(state.loading) return `<div class="card notice">Caricamento partite...</div>`;
+  if(state.error) return `<div class="card notice">${esc(state.error)}</div>`;
+  const list = filteredFixtures();
+  if(!list.length) return `<div class="card notice muted">Nessuna partita disponibile per questo filtro.</div>`;
+  return `<div class="list">
+    ${list.map(m => `
+      <div class="card match" onclick="openMatch(${m.fixture.id})">
+        <div class="rowflex">
+          <div>
+            <div class="muted small">${localDate(m.fixture.date)}</div>
+            <div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div>
+            <div class="muted small">${esc(m.fixture.venue?.name || 'Stadio non disponibile')}</div>
+          </div>
+          <div class="badges">
+            <span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span>
+            <span class="badge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span>
+          </div>
+        </div>
+      </div>`).join("")}
+  </div>`;
+}
+
+function homeView(){
+  return `
+    <div class="content">
+      ${topHero()}
+      <div class="toolbar">
+        <div class="tabs">
+          <button class="${state.filter==='all'?'active':''}" onclick="setFilter('all')">Tutte</button>
+          <button class="${state.filter==='live'?'active':''}" onclick="setFilter('live')">Live</button>
+          <button class="${state.filter==='next'?'active':''}" onclick="setFilter('next')">Prossime</button>
+          <button class="${state.filter==='finished'?'active':''}" onclick="setFilter('finished')">Finite</button>
+        </div>
+        <input class="search" placeholder="Cerca squadra o stadio..." value="${esc(state.search)}" oninput="setSearch(this.value)" />
+      </div>
+      ${fixtureList()}
+    </div>
+  `;
+}
+
+function statBlock(label, home, away){
+  const h = Number(String(home ?? 0).replace('%','')) || 0;
+  const a = Number(String(away ?? 0).replace('%','')) || 0;
+  const total = h + a;
+  const width = total ? (h/total)*100 : 0;
+  return `
+    <div class="stat">
+      <div class="rowflex small" style="margin-bottom:8px"><strong>${esc(label)}</strong></div>
+      <div class="rowflex" style="align-items:center">
+        <strong>${home ?? 0}</strong>
+        <div style="flex:1"><div class="bar"><div class="fill" style="width:${width}%"></div></div></div>
+        <strong>${away ?? 0}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function detailView(){
+  if(!state.selected) return "";
+  if(state.selected.loading) return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="card notice">Caricamento dettaglio partita...</div></div>`;
+  if(state.selected.error) return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="card notice">${esc(state.selected.error)}</div></div>`;
+
+  const d = state.selected.data;
+  const m = d.match;
+  const events = d.events || [];
+  const stats = d.stats || [];
+  const lineups = d.lineups || [];
+
+  const statsHtml = stats.length >= 2 ? `
+    <div class="card section">
+      <h2>Statistiche</h2>
+      <div class="grid">
+        ${renderStat(stats,"Shots on Goal","Tiri in porta")}
+        ${renderStat(stats,"Shots off Goal","Tiri fuori")}
+        ${renderStat(stats,"Total Shots","Tiri totali")}
+        ${renderStat(stats,"Fouls","Falli")}
+        ${renderStat(stats,"Corner Kicks","Calci d'angolo")}
+        ${renderStat(stats,"Ball Possession","Possesso")}
+      </div>
+    </div>` :
+    `<div class="card section"><h2>Statistiche</h2><div class="muted small">Non disponibili per questa partita.</div></div>`;
+
+  const lineupsHtml = lineups.length >= 2 ? `
+    <div class="card section">
+      <h2>Formazioni</h2>
+      <div class="grid grid2">
+        ${lineupCard(lineups[0])}
+        ${lineupCard(lineups[1])}
+      </div>
+    </div>` :
+    `<div class="card section"><h2>Formazioni</h2><div class="muted small">Ancora non comunicate.</div></div>`;
+
+  return `
+    <div class="content">
+      <a class="back" onclick="closeMatch()">← Torna alla competizione</a>
+      <div class="grid grid2">
+        <div>
+          <div class="card section">
+            <div class="rowflex">
+              <div>
+                <div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div>
+                <div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div>
+                <div class="muted small">${esc(m.fixture.venue?.name || 'Stadio non disponibile')}</div>
+              </div>
+              <div class="badges">
+                <span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span>
+                <span class="badge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card section">
+            <h2>Eventi</h2>
+            ${events.length ? events.map(e => `
+              <div class="event">
+                <div class="rowflex">
+                  <strong>${e.time.elapsed ? e.time.elapsed + "'" : '-'} ${iconForEvent(e.type, e.detail)}</strong>
+                  <span class="muted small">${esc(e.team?.name || '')}</span>
+                </div>
+                <div style="margin-top:6px">${esc(e.player?.name || '')}${e.assist?.name ? ' • 👟 ' + esc(e.assist.name) : ''}</div>
+                <div class="muted small">${esc(e.type || '')}${e.detail ? ' • ' + esc(e.detail) : ''}</div>
+              </div>`).join("") : `<div class="muted small">Nessun evento disponibile.</div>`}
+          </div>
+
+          ${statsHtml}
+        </div>
+        <div>
+          ${lineupsHtml}
+          <div class="card section">
+            <h2>Prossimo step</h2>
+            <div class="muted small">Adesso che la base live è stabile, il prossimo upgrade giusto è reintrodurre squadre, classifiche e poi estendere una categoria alla volta senza rompere niente.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStat(stats, type, label){
+  const h = stats[0].statistics.find(x => x.type === type)?.value ?? 0;
+  const a = stats[1].statistics.find(x => x.type === type)?.value ?? 0;
+  return statBlock(label, h, a);
+}
+
+function lineupCard(team){
+  return `
+    <div class="lineup">
+      <strong>${esc(team.team.name)}</strong>
+      <div class="muted small" style="margin:6px 0 12px">Modulo: ${esc(team.formation || 'N/D')}</div>
+      <div class="players">
+        ${(team.startXI || []).map(p => `
+          <div class="player">
+            <strong>#${p.player.number || '-'} ${esc(p.player.name)}</strong>
+            <div class="muted small">${esc(p.player.pos || 'Ruolo non disponibile')}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function render(){
+  document.getElementById("app").innerHTML = `
+    <div class="app">
+      ${sidebar()}
+      ${state.selected ? detailView() : homeView()}
+    </div>
+  `;
+}
+
+function setFilter(v){ state.filter = v; render(); }
+function setSearch(v){ state.search = v; render(); }
+
+function selectCompetition(name){
+  state.competition = name;
+  state.filter = "all";
+  state.search = "";
+  state.fixtures = [];
+  state.selected = null;
+  loadFixtures();
+}
+
+async function loadFixtures(){
+  const comp = getComp();
+  state.loading = true;
+  state.error = "";
+  render();
+  if(!comp.live){
+    state.loading = false;
+    render();
+    return;
+  }
+  try{
+    const res = await fetch(`/api/fixtures?competition=${encodeURIComponent(comp.code)}`);
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || "Errore nel caricamento");
+    state.fixtures = data.fixtures || [];
+  }catch(err){
+    state.fixtures = [];
+    state.error = err.message || "Errore nel caricamento";
+  }
+  state.loading = false;
+  render();
+}
+
+async function openMatch(id){
+  state.selected = { loading:true };
+  render();
+  try{
+    const res = await fetch(`/api/match?id=${id}`);
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || "Errore nel dettaglio partita");
+    state.selected = { data };
+  }catch(err){
+    state.selected = { error: err.message || "Errore nel dettaglio partita" };
+  }
+  render();
+}
+
+function closeMatch(){
+  state.selected = null;
+  render();
+}
+
+loadFixtures();
 </script>
 </body>
 </html>

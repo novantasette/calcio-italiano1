@@ -1,22 +1,40 @@
 export default async function handler(req, res) {
   const key = process.env.API_FOOTBALL_KEY;
-
   if (!key) {
     return res.status(500).json({ error: "API KEY mancante" });
   }
 
-  const league = 135; // Serie A
-  const season = 2025;
+  const map = {
+    "serie-a": { league: 135, season: 2025 },
+    "serie-b": { league: 136, season: 2025 },
+    "coppa-italia": { league: 137, season: 2025 }
+  };
+
+  const comp = req.query.competition;
+  const cfg = map[comp];
+  if (!cfg) {
+    return res.status(400).json({ error: "Competizione non supportata in questa versione." });
+  }
+
+  const today = new Date();
+  const from = new Date(today);
+  from.setDate(today.getDate() - 60);
+  const to = new Date(today);
+  to.setDate(today.getDate() + 60);
+  const fmt = d => d.toISOString().split("T")[0];
 
   try {
-    const r = await fetch(`https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}`, {
+    const r = await fetch(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&from=${fmt(from)}&to=${fmt(to)}`, {
       headers: { "x-apisports-key": key }
     });
-
     const data = await r.json();
-    return res.status(200).json({ fixtures: data.response });
 
+    if (!r.ok) {
+      return res.status(r.status).json({ error: data?.message || "Errore API esterna." });
+    }
+
+    return res.status(200).json({ fixtures: data.response || [] });
   } catch (e) {
-    return res.status(500).json({ error: "Errore API" });
+    return res.status(500).json({ error: "Errore nel proxy fixtures." });
   }
 }
