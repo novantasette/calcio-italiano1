@@ -1,4 +1,4 @@
-Calcio Italiano Live V4 Pro
+Calcio Italiano Live V5
 
 Sostituisci:
 - index.html
@@ -6,9 +6,10 @@ Sostituisci:
 - api/match.js
 - package.json
 
-Poi fai commit e redeploy su Vercel.
+Poi commit e redeploy su Vercel.
+
 Migliorie:
-- niente etichetta "PRESTO"
-- filtro Live corretto con messaggio chiaro se non ci sono match live
-- lista partite più ampia (last 50 + next 50)
-- interfaccia pulita
+- stato partita in italiano
+- "Partita finita" al posto di "Finale"
+- stato live più bello visivamente
+- niente etichette inutili nel menu
