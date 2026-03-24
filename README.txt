@@ -1,14 +1,10 @@
-Calcio Italiano Live V2
+Calcio Italiano Live V3 Debug
 
-Cosa fare:
-1. sostituisci nel repo i file con questi
-2. su Vercel lascia già la variabile:
-   API_FOOTBALL_KEY = la tua chiave
-3. fai redeploy
+Sostituisci:
+- index.html
+- api/fixtures.js
+- api/match.js
+- package.json
 
-Questa versione migliora:
-- interfaccia
-- filtri
-- caricamento più ampio partite
-- dettaglio partita
-- menu completo con categorie predisposte
+Poi fai commit e redeploy su Vercel.
+Questa versione usa next+last invece di finestra date e include un pulsante Debug.

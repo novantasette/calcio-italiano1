@@ -16,25 +16,45 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Competizione non supportata in questa versione." });
   }
 
-  const today = new Date();
-  const from = new Date(today);
-  from.setDate(today.getDate() - 60);
-  const to = new Date(today);
-  to.setDate(today.getDate() + 60);
-  const fmt = d => d.toISOString().split("T")[0];
+  const fetchJson = async (url) => {
+    const r = await fetch(url, { headers: { "x-apisports-key": key } });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.message || "Errore API esterna");
+    return data;
+  };
 
   try {
-    const r = await fetch(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&from=${fmt(from)}&to=${fmt(to)}`, {
-      headers: { "x-apisports-key": key }
-    });
-    const data = await r.json();
+    const [nextData, lastData] = await Promise.all([
+      fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&next=25`),
+      fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&last=25`)
+    ]);
 
-    if (!r.ok) {
-      return res.status(r.status).json({ error: data?.message || "Errore API esterna." });
+    const merged = [...(lastData.response || []), ...(nextData.response || [])];
+    const uniq = [];
+    const seen = new Set();
+
+    for (const item of merged) {
+      const id = item?.fixture?.id;
+      if (id && !seen.has(id)) {
+        seen.add(id);
+        uniq.push(item);
+      }
     }
 
-    return res.status(200).json({ fixtures: data.response || [] });
+    uniq.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+
+    return res.status(200).json({
+      fixtures: uniq,
+      debug: {
+        competition: comp,
+        league: cfg.league,
+        season: cfg.season,
+        lastCount: (lastData.response || []).length,
+        nextCount: (nextData.response || []).length,
+        total: uniq.length
+      }
+    });
   } catch (e) {
-    return res.status(500).json({ error: "Errore nel proxy fixtures." });
+    return res.status(500).json({ error: e.message || "Errore nel proxy fixtures." });
   }
 }
