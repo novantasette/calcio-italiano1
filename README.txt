@@ -1,4 +1,4 @@
-Calcio Italiano Live V3 Debug
+Calcio Italiano Live V4 Pro
 
 Sostituisci:
 - index.html
@@ -7,4 +7,8 @@ Sostituisci:
 - package.json
 
 Poi fai commit e redeploy su Vercel.
-Questa versione usa next+last invece di finestra date e include un pulsante Debug.
+Migliorie:
+- niente etichetta "PRESTO"
+- filtro Live corretto con messaggio chiaro se non ci sono match live
+- lista partite più ampia (last 50 + next 50)
+- interfaccia pulita

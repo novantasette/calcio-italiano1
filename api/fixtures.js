@@ -25,8 +25,8 @@ export default async function handler(req, res) {
 
   try {
     const [nextData, lastData] = await Promise.all([
-      fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&next=25`),
-      fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&last=25`)
+      fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&next=50`),
+      fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&last=50`)
     ]);
 
     const merged = [...(lastData.response || []), ...(nextData.response || [])];
