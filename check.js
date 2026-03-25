@@ -1,79 +1,4 @@
-<!doctype html>
-<html lang="it">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calcio Italiano Live</title>
-  <style>
-    :root{
-      --bg:#07111b;--bg2:#0b1523;--panel:#0f1c2f;--panel2:#13243b;--panel3:#0d1a2b;--text:#f7f9fc;--muted:#9fb0c6;
-      --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.14);--green:#33d17a;--yellow:#ffcf57;--red:#ff6464;
-      --blue:#5aa7ff;--shadow:0 18px 42px rgba(0,0,0,.24);--radius:22px
-    }
-    *{box-sizing:border-box} html,body{margin:0;padding:0}
-    body{font-family:Inter,Arial,Helvetica,sans-serif;background:radial-gradient(circle at top, #10233d 0%, var(--bg) 34%, #060d16 100%);color:var(--text)}
-    button,input{font:inherit}
-    a{color:inherit}
-    .topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 22px;background:rgba(7,17,27,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-    .brand-inline{display:flex;align-items:center;gap:12px;min-width:0}
-    .logo{width:46px;height:46px;border-radius:50%;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 30%, #23456d, #091321 68%);border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow)}
-    .logo:before{content:"";position:absolute;inset:6px;border-radius:50%;background:conic-gradient(from 0deg,#1fd16a, #ffffff, #f04f4f, #1fd16a)}
-    .logo:after{content:"CIL";position:absolute;inset:10px;border-radius:50%;display:grid;place-items:center;background:#08111d;color:#fff;font-weight:900;font-size:.78rem;letter-spacing:.08em}
-    .brand-inline h1{margin:0;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .brand-inline small{display:block;color:var(--muted);margin-top:2px}
-    .topnav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .topnav button{background:#0d1929;border:1px solid var(--line);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.18s}
-    .topnav button:hover,.topnav button.active{background:#15263e;border-color:#355376;transform:translateY(-1px)}
-    .app{display:grid;grid-template-columns:310px 1fr;min-height:calc(100vh - 75px)}
-    .sidebar{padding:18px 14px 24px;border-right:1px solid var(--line);background:linear-gradient(180deg,rgba(10,18,30,.92),rgba(9,16,26,.98));position:sticky;top:75px;height:calc(100vh - 75px);overflow:auto}
-    .sidebar h3{margin:0 0 12px;font-size:.82rem;color:#7fd6ff;letter-spacing:.16em;text-transform:uppercase}
-    .macro{margin-bottom:10px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);overflow:hidden}
-    .macro button.head{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:transparent;border:0;color:var(--text);font-weight:700;cursor:pointer}
-    .macro button.head span:last-child{color:var(--muted);font-size:1.1rem}
-    .subs{display:none;padding:0 10px 12px 10px}
-    .macro.open .subs{display:grid;gap:8px}
-    .subs button{width:100%;text-align:left;border:1px solid transparent;background:#0b1727;color:var(--text);padding:11px 13px;border-radius:12px;cursor:pointer}
-    .subs button.active{border-color:#396592;background:#13263c}
-    .subs button.disabled{opacity:.55;cursor:not-allowed}
-    .content{padding:22px 22px 40px}
-    .hero{display:grid;grid-template-columns:1.4fr .8fr;gap:16px;margin-bottom:18px}
-    .card{background:linear-gradient(180deg,rgba(18,31,50,.96),rgba(10,20,34,.96));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .hero-main,.hero-side,.section,.notice{padding:22px}
-    h1{margin:0 0 8px;font-size:2.5rem;line-height:1.05} h2{margin:0 0 12px;font-size:1.18rem} h3{margin:0 0 10px;font-size:1rem}
-    p{margin:0;color:#d8e0ec;line-height:1.6}.muted{color:var(--muted)} .small{font-size:.92rem}
-    .pills,.team-pills,.subnav{display:flex;gap:8px;flex-wrap:wrap}
-    .pill,.subnav button{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid transparent;font-size:.9rem}
-    .subnav button{cursor:pointer;color:var(--text)} .subnav button.active{background:#18304e;border-color:#386692}
-    .kpi{display:grid;gap:10px}.kpi .row,.feature,.market-item,.ranking-row,.team-item,.event,.lineup,.stat{padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
-    .toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tabs button{background:#0b1930;color:var(--text);border:1px solid var(--line-strong);border-radius:12px;padding:10px 14px;cursor:pointer}.tabs button.active{background:#17304f;border-color:#4172a9}
-    .search{background:#081625;border:1px solid var(--line-strong);color:var(--text);border-radius:14px;padding:10px 14px;min-width:260px;outline:none}
-    .list,.grid{display:grid;gap:12px}.grid2{grid-template-columns:1.18fr .82fr}.grid3{grid-template-columns:repeat(3,1fr)}
-    .match{padding:16px 18px;cursor:pointer;transition:.18s}.match:hover{border-color:#3e78b7;transform:translateY(-1px)}
-    .rowflex{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.title{font-size:1.12rem;font-weight:700;margin-top:6px}
-    .badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.badge,.scorebadge{padding:8px 12px;border-radius:999px;font-size:.82rem;font-weight:700;background:rgba(255,255,255,.08)}
-    .live{background:rgba(255,113,74,.16);color:#ffd1b2;border:1px solid rgba(255,179,71,.22)} .finished{background:rgba(35,193,106,.14);color:#9af0bc} .scheduled{background:rgba(255,207,87,.14);color:#ffe18a}
-    .live-dot{display:inline-block;width:8px;height:8px;border-radius:999px;background:linear-gradient(90deg,#ff7a59,#ffb347);margin-right:8px;box-shadow:0 0 12px rgba(255,122,89,.8);animation:pulse 1.2s infinite}
-    @keyframes pulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:.7}100%{transform:scale(1);opacity:1}}
-    .bar{height:10px;background:#091625;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.05)} .fill{height:100%;background:linear-gradient(90deg,#22c55e,#6ee7b7)}
-    .players{display:grid;gap:8px}.player{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
-    .back{display:inline-block;margin-bottom:12px;color:#c7d8eb;cursor:pointer}.footer-note{margin-top:14px;color:var(--muted);font-size:.9rem}
-    table{width:100%;border-collapse:collapse} th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left} tr:hover td{background:rgba(255,255,255,.02)}
-    .linklike{cursor:pointer}.linklike:hover{text-decoration:underline}.paypal-btn,.discord-btn{display:inline-block;margin-top:16px;padding:12px 18px;border-radius:14px;background:linear-gradient(90deg,#0ea5e9,#2563eb);color:white;text-decoration:none;font-weight:700;border:0;cursor:pointer}
-    .hero-list{display:grid;gap:10px;margin-top:14px}.hero-list .feature{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .ranking-row{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center}
-    .ranking-rank{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#10233a;font-weight:800;color:#cde3ff;border:1px solid var(--line)}
-    .market-meta,.ranking-meta{color:var(--muted);font-size:.9rem;margin-top:4px}
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .notice{font-size:.98rem}
-    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.split{grid-template-columns:1fr}}
-    @media (max-width:820px){.topbar{padding:14px}.content{padding:18px}.topnav{justify-content:flex-start}.search{min-width:100%}h1{font-size:2rem}}
-  </style>
-</head>
-<body>
-<div id="app"></div>
-<script>
+
 const NAV_ITEMS = [
   { key:'home', label:'Home' },
   { key:'support', label:'Supporta il progetto' },
@@ -368,6 +293,3 @@ async function openTeam(teamId, teamName){
 function closeTeam(){ state.selectedTeam=null; state.teamData=null; state.teamLoading=false; render(); }
 
 loadCompetitionData();
-</script>
-</body>
-</html>
