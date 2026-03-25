@@ -243,27 +243,25 @@ const CATEGORY_TREE = [
   { key:'italiane-europa', label:'Italiane in Europa', items:[
     { name:'Champions League', code:'champions-league', live:true },
     { name:'Europa League', code:'europa-league', live:true },
-    { name:'Conference League', code:'conference-league', live:true },
-    { name:'Supercoppa UEFA', code:'supercoppa-uefa', live:false, disabled:true }
+    { name:'Conference League', code:'conference-league', live:true }
   ]},
   { key:'nazionale', label:'Nazionale', items:[
     { name:'Italia', code:'italia', live:true, mode:'team', teamId:768 },
     { name:'Italia U20', code:'italia-u20', live:true, mode:'team', teamId:10289 },
     { name:'Italia U21', code:'italia-u21', live:true, mode:'team', teamId:820 },
-    { name:'Qualificazioni Mondiali', code:'qualificazioni-mondiali', live:true },
-    { name:'Qualificazioni Europei', code:'qualificazioni-europei', live:false, disabled:true },
-    { name:'UEFA Nations League', code:'nations-league', live:true },
-    { name:'Europei', code:'europei', live:false, disabled:true },
-    { name:'Mondiali', code:'mondiali', live:true }
+    { name:'Qualificazioni Mondiali', code:'world-cup-qualifiers-europe', live:true, mode:'national-competition', teamId:768 },
+    { name:'UEFA Nations League', code:'nations-league', live:true, mode:'national-competition', teamId:768 },
+    { name:'Mondiali', code:'world-cup', live:true, mode:'national-competition', teamId:768 }
   ]}
 ];
 
 const state = {
   page:'home', competition:'', filter:'all', search:'', fixtures:[], loading:false, error:'',
-  selected:null, meta:null, standings:[], standingsLoading:false, selectedTeam:null, teamData:null, teamLoading:false,
+  selected:null, meta:null, standings:[], standingsMeta:null, standingsLoading:false, selectedTeam:null, teamData:null, teamLoading:false,
   openMacro:'serie-a', marketTab:'official', rankings:{ scorers:[], assists:[], ratings:[] },
   rankingsLoading:{ scorers:false, assists:false, ratings:false }, rankingsNote:{ scorers:'', assists:'', ratings:'' },
-  transfers:[], transfersLoading:false, transfersNote:'', teamDirectorySearch:'', teamTab:'overview', topTab:'scorers'
+  transfers:[], transfersLoading:false, transfersNote:'', teamDirectorySearch:'', teamTab:'overview', topTab:'scorers',
+  _historyLock:false
 };
 
 const esc=s=>String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
@@ -300,7 +298,27 @@ const standingRowClass = rank => {
 function statusClass(short){ if(['1H','2H','HT','ET','BT','P','LIVE','INT'].includes(short)) return 'live'; if(['FT','AET','PEN'].includes(short)) return 'finished'; return 'scheduled'; }
 function statusLabel(m){ const s=m.fixture.status.short, e=m.fixture.status.elapsed; if(['1H','2H'].includes(s)) return `<span class="live-dot"></span>Partita in corso ${s==='1H'?'1T':'2T'}${e?' • '+e+"'":''}`; if(s==='HT') return '<span class="live-dot"></span>Intervallo'; if(['ET','BT','P','LIVE','INT'].includes(s)) return '<span class="live-dot"></span>Partita in corso'; if(['FT','AET','PEN'].includes(s)) return 'Partita finita'; return 'Non iniziata'; }
 function iconForEvent(type,detail){ const t=`${type||''} ${detail||''}`.toLowerCase(); if(t.includes('goal')) return '⚽'; if(t.includes('card')) return detail==='Red Card'?'🟥':'🟨'; if(t.includes('subst')) return '🔁'; if(t.includes('var')) return '🖥️'; if(t.includes('penalty')) return '🎯'; return '•'; }
-function teamLink(name,id){ return `<span class="linklike" onclick="openTeam(${id},'${esc(String(name).replaceAll("'",'\\\''))}')">${esc(name)}</span>`; }
+
+function teamLink(name,id){ return `<span class="linklike" onclick="openTeam(${id},'${esc(String(name).replaceAll("'",'\''))}')">${esc(name)}</span>`; }
+function safeJsonState(){
+  return {
+    page: state.page,
+    competition: state.competition,
+    filter: state.filter,
+    search: state.search,
+    openMacro: state.openMacro,
+    marketTab: state.marketTab,
+    selected: state.selected,
+    selectedTeam: state.selectedTeam,
+    teamTab: state.teamTab
+  };
+}
+function syncHistory(replace=false){
+  if(state._historyLock) return;
+  const snapshot = safeJsonState();
+  if(replace) history.replaceState(snapshot, '', '#'+(state.page || 'home'));
+  else history.pushState(snapshot, '', '#'+(state.page || 'home'));
+}
 function parseNum(v){ const n=parseFloat(String(v||'0').replace('%','').replace(',','.')); return Number.isFinite(n)?n:0; }
 
 const STAT_LABELS = {
@@ -330,11 +348,7 @@ const GENERIC_TRANSLATIONS = {
   'Starting XI':'Formazione titolare','Substitutes':'Panchina','Coach':'Allenatore','Home Team':'Squadra di casa','Away Team':'Squadra ospite',
   'Match Winner':'Vincitore partita','No Goals':'Nessun gol','Both Teams Score':'Gol di entrambe le squadre','Aggiornamento':'Aggiornamento',
   'Transfer':'Trasferimento','Loan':'Prestito','Free':'Svincolato','N/A':'n.d.','Cancelled':'Annullata','Abandoned':'Sospesa','Awarded':'Assegnata',
-  'Postponed':'Rinviata','Suspended':'Sospesa','Time':'Orario','Home':'Casa','Away':'Trasferta','Win':'Vittoria','Draw':'Pareggio','Loss':'Sconfitta',
-  'Goalkeeper':'Portiere','Defender':'Difensore','Midfielder':'Centrocampista','Attacker':'Attaccante','Forward':'Attaccante',
-  'Left Winger':'Ala sinistra','Right Winger':'Ala destra','Centre-Forward':'Centravanti','Second Striker':'Seconda punta',
-  'Centre-Back':'Difensore centrale','Left-Back':'Terzino sinistro','Right-Back':'Terzino destro','Defensive Midfielder':'Mediano',
-  'Central Midfielder':'Centrocampista centrale','Attacking Midfielder':'Trequartista','Left Midfielder':'Centrocampista sinistro','Right Midfielder':'Centrocampista destro'
+  'Postponed':'Rinviata','Suspended':'Sospesa','Time':'Orario','Home':'Casa','Away':'Trasferta','Win':'Vittoria','Draw':'Pareggio','Loss':'Sconfitta'
 };
 function tLabel(value){
   const raw = String(value ?? '').trim();
@@ -371,7 +385,7 @@ function uniqueTeams(){
 }
 
 function topbar(){
-  return `<div class="topbar"><div class="brand-inline" role="button" tabindex="0" onclick="setPage('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setPage('home');}"><div class="logo" aria-hidden="true"><img src="logo.svg" alt="Logo Calcio Italiano" /></div><div><h1>Calcio Italiano</h1><small>Risultati, classifiche e approfondimenti sul calcio italiano</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')"><span class="nav-ico">${item.icon}</span><span>${item.label}</span></button>`).join('')}</div></div>`;
+  return `<div class="topbar"><div class="brand-inline" onclick="setPage('home')"><div class="logo" aria-label="Home" role="button" tabindex="0" onclick="event.stopPropagation();setPage('home')" onkeydown="if(event.key==='Enter'||event.key===' '){setPage('home')}"><img src="logo.svg" alt="Logo Calcio Italiano" /></div><div><h1>Calcio Italiano</h1><small>Risultati, classifiche e approfondimenti sul calcio italiano</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')"><span class="nav-ico">${item.icon}</span><span>${item.label}</span></button>`).join('')}</div></div>`;
 }
 
 function sidebar(){
@@ -437,30 +451,34 @@ function matchesList(){
     list=list.filter(m=>m.teams.home.name.toLowerCase().includes(q)||m.teams.away.name.toLowerCase().includes(q));
   }
 
-  const noItalian = (state.meta && state.meta.noItalianTeams && ['champions-league','europa-league','conference-league'].includes(currentCode()));
+  const euroEmptyMessage = state.meta?.italianTeamsOnly && !liveList.length && !nextList.length
+    ? `<div class="notice"><strong>Tutte le squadre italiane sono state eliminate dalla competizione.</strong><div class="footer-note">Qui sotto trovi gli ultimi risultati delle italiane, con aggregate e indicazione della squadra qualificata.</div></div>`
+    : '';
+
+  const euroSummary = state.meta?.recentItalianResults?.length
+    ? `<div class="card section" style="margin-bottom:12px"><h2>Ultimi risultati delle italiane</h2><div class="list">${state.meta.recentItalianResults.map(tie=>`<div class="market-item"><div class="rowflex"><div><strong>${esc(tie.home.name)} ${tie.home.score} (${tie.home.aggregate}) ${tie.home.qualified ? '↑' : ''}</strong></div><div class="muted small">${tie.legs===2?'Andata / ritorno':'Partita secca'}</div></div><div style="margin-top:8px"><strong>${esc(tie.away.name)} ${tie.away.score} (${tie.away.aggregate}) ${tie.away.qualified ? '↑' : ''}</strong></div></div>`).join('')}</div></div>`
+    : '';
+
   const body = !list.length
-    ? `<div class="notice">${noItalian ? 'Tutte le squadre italiane sono state eliminate dalla competizione.' : 'Nessuna partita trovata per i filtri selezionati.'}</div>`
-    : (state.filter==='finished' || state.filter==='live') 
-      ? `<div class="list">${list.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small"><strong>${localDateLong(m.fixture.date)}</strong> • ${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`
-      : renderMatchesGrouped(list);
-
-  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>${currentMode()==='team' ? 'Partite dell\'Italia' : 'Partite'}</h2><div class="muted small">${esc(note)}</div></div>${toolbar()}${state.loading?`<div class="notice">Caricamento partite...</div>`:state.error?`<div class="notice">${esc(state.error)}</div>`:body}</div>`;
+    ? `${euroEmptyMessage}${euroSummary}<div class="notice">Nessuna partita trovata per i filtri selezionati.</div>`
+    : ((state.filter==='finished' || state.filter==='live') 
+      ? `${euroEmptyMessage}${euroSummary}<div class="list">${list.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small"><strong>${localDateLong(m.fixture.date)}</strong> • ${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`
+      : `${euroEmptyMessage}${euroSummary}${renderMatchesGrouped(list)}`);
+  return `<div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Partite</h2><div class="muted small">${note}</div></div><div class="muted small">${state.fixtures.length ? state.fixtures.length+' incontri disponibili' : 'Nessun incontro caricato'}</div></div>${toolbar()}${state.loading?`<div class="notice">Caricamento partite...</div>`:state.error?`<div class="notice">${esc(state.error)}</div>`:body}</div>`;
 }
 
-function standingTags(rank){
-  const code = currentCode();
-  const tags = [];
-  if(code==='serie-a'){
-    if(rank>=1 && rank<=4) tags.push('Champions League');
-    else if(rank===5) tags.push('Europa League');
-    else if(rank===6) tags.push('Conference League');
-  }
-  if(rank>=18) tags.push('Retrocessione');
-  return tags.map(tag=>`<span class="standing-tag">${tag}</span>`).join(' ');
-}
 function standingsCard(){
+  const serieA = currentCode()==='serie-a';
   const noItalian = state.standingsMeta && state.standingsMeta.noItalianTeams && ['champions-league','europa-league','conference-league'].includes(currentCode());
-  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Classifica</h2><div class="muted small">${esc(state.competition)}</div></div>${state.standingsLoading?`<div class="notice">Caricamento classifica...</div>`:!state.standings.length?`<div class="notice">${noItalian ? 'Nessuna squadra italiana ancora presente nella classifica attuale della competizione.' : 'Classifica non disponibile per questa categoria.'}</div>`:`<table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>N</th><th>P</th><th>DR</th></tr></thead><tbody>${state.standings.map(r=>`<tr class="${standingRowClass(r.rank)}"><td>${r.rank}</td><td>${teamLink(r.team.name,r.team.id)} ${standingTags(r.rank)}</td><td>${r.points}</td><td>${r.all.played}</td><td>${r.all.win}</td><td>${r.all.draw}</td><td>${r.all.lose}</td><td>${r.goalsDiff}</td></tr>`).join('')}</tbody></table>`}</div>`;
+  const labelForRow = rank => {
+    if(!serieA) return rank>=18 ? '<span class="standing-tag">Retrocessione</span>' : '';
+    if(rank<=4) return '<span class="standing-tag">Champions League</span>';
+    if(rank===5) return '<span class="standing-tag">Europa League</span>';
+    if(rank===6) return '<span class="standing-tag">Conference League</span>';
+    if(rank>=18) return '<span class="standing-tag">Retrocessione</span>';
+    return '';
+  };
+  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Classifica</h2><div class="muted small">${esc(state.competition)}</div></div>${state.standingsLoading?`<div class="notice">Caricamento classifica...</div>`:!state.standings.length?`<div class="notice">${noItalian ? 'Nessuna squadra italiana ancora presente nella classifica attuale della competizione.' : 'Classifica non disponibile per questa categoria.'}</div>`:`<table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>N</th><th>P</th><th>DR</th></tr></thead><tbody>${state.standings.map(r=>`<tr class="${standingRowClass(r.rank)}"><td>${r.rank}</td><td>${teamLink(r.team.name,r.team.id)} ${labelForRow(r.rank)}</td><td>${r.points}</td><td>${r.all.played}</td><td>${r.all.win}</td><td>${r.all.draw}</td><td>${r.all.lose}</td><td>${r.goalsDiff}</td></tr>`).join('')}</tbody></table>`}</div>`;
 }
 
 function homeView(){ return `<div class="content">${homeHero()}${homeLanding()}</div>`; }
@@ -608,18 +626,12 @@ function mainView(){
   return homeView();
 }
 
-function snapshotState(){ return JSON.parse(JSON.stringify(state)); }
-function syncHistory(mode='replace'){
-  const payload = snapshotState();
-  if(mode==='push') window.history.pushState(payload, '', window.location.pathname + window.location.search + window.location.hash);
-  else window.history.replaceState(payload, '', window.location.pathname + window.location.search + window.location.hash);
-}
-function render(){ document.getElementById('app').innerHTML = `${topbar()}<div class="app">${sidebar()}${mainView()}</div>`; syncHistory('replace'); }
-function setFilter(v){ state.filter=v; render(); }
-function setSearch(v){ state.search=v; render(); }
+function render(){ const app=document.getElementById('app'); const sidebarEl=app.querySelector('.sidebar'); const sidebarTop=sidebarEl?sidebarEl.scrollTop:0; app.innerHTML = `${topbar()}<div class="app">${sidebar()}${mainView()}</div>`; const newSidebar=app.querySelector('.sidebar'); if(newSidebar) newSidebar.scrollTop = sidebarTop; }
+function setFilter(v){ state.filter=v; render(); syncHistory(true); }
+function setSearch(v){ state.search=v; render(); syncHistory(true); }
 function setTeamDirectorySearch(v){ state.teamDirectorySearch=v; render(); }
-function setTeamTab(v){ state.teamTab=v; render(); }
-function toggleMacro(key){ state.openMacro = state.openMacro === key ? '' : key; render(); }
+function setTeamTab(v){ state.teamTab=v; render(); syncHistory(true); }
+function toggleMacro(key){ state.openMacro = state.openMacro === key ? '' : key; render(); syncHistory(true); }
 function setMarketTab(v){ state.marketTab=v; render(); if(v==='official') loadTransfers(); }
 function setTopTab(v){ state.topTab=v; state.page='top'; render(); loadAllRankings(); }
 function resetToHome(){
@@ -628,15 +640,15 @@ function resetToHome(){
   state.teamDirectorySearch=''; state.teamTab='overview'; state.marketTab='official'; state.topTab='scorers';
 }
 function setPage(page){
-  if(page==='home'){ resetToHome(); render(); syncHistory('push'); return; }
-  state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render(); syncHistory('push');
+  if(page==='home'){ resetToHome(); render(); syncHistory(); return; }
+  state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render(); syncHistory();
   if(page==='top') loadAllRankings();
   if(page==='market') loadTransfers();
 }
 function goCompetition(){
   if(!state.competition) return;
   state.page='competition';
-  render();
+  render(); syncHistory();
   if(!state.fixtures.length && !state.loading) loadCompetitionData();
 }
 function selectCompetition(name){
@@ -644,28 +656,30 @@ function selectCompetition(name){
   const group = CATEGORY_TREE.find(g => g.items.some(i => i.name===name));
   state.openMacro = group?.key || state.openMacro; state.competition=name; state.filter='all'; state.search='';
   state.fixtures=[]; state.selected=null; state.selectedTeam=null; state.teamData=null; state.meta=null; state.standings=[]; state.standingsMeta=null; state.teamDirectorySearch=''; state.teamTab='overview';
-  if(item?.mode==='team' && item?.teamId){
+  if((item?.mode==='team' || item?.mode==='national-competition') && item?.teamId){
     state.page='competition';
-    state.fixtures=[]; state.meta=null; state.standings=[]; state.standingsMeta=null;
-    render(); syncHistory('push');
+    state.fixtures=[]; state.meta=null; state.standings=[];
+    syncHistory();
     loadCompetitionData();
     return;
   }
   state.page='competition';
-  render(); syncHistory('push');
+  syncHistory();
   loadCompetitionData();
 }
 async function openNationalTeam(teamId, teamName){
-  state.selected=null; state.selectedTeam={id:teamId,name:teamName}; state.teamLoading=true; state.teamData=null; state.teamTab='overview'; render(); syncHistory('push');
+  state.selected=null; state.selectedTeam={id:teamId,name:teamName}; state.teamLoading=true; state.teamData=null; state.teamTab='overview'; render();
   try{ const res=await fetch(`/api/national-team?team=${teamId}`); const data=await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel caricamento squadra nazionale'); state.teamData=data; }
   catch(err){ state.teamData={error:err.message || 'Errore nel caricamento squadra nazionale'}; }
-  state.teamLoading=false; render();
+  state.teamLoading=false; render(); syncHistory(true);
 }
+
 async function loadFixturesOnly(){
-  if(currentMode()==='team'){
+  if(currentMode()==='team' || currentMode()==='national-competition'){
     const teamId = currentItem()?.teamId;
     if(!teamId){ state.fixtures=[]; state.meta=null; return; }
-    const res = await fetch(`/api/national-fixtures?team=${teamId}`);
+    const compParam = currentMode()==='national-competition' ? `&competition=${encodeURIComponent(currentCode())}` : '';
+    const res = await fetch(`/api/national-fixtures?team=${teamId}${compParam}`);
     const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel caricamento');
     state.fixtures = data.fixtures || []; state.meta = data.debug || null;
     return;
@@ -676,8 +690,8 @@ async function loadFixturesOnly(){
   state.fixtures = data.fixtures || []; state.meta = data.debug || null;
 }
 async function loadStandings(){
-  if(currentMode()==='team'){ state.standings=[]; state.standingsLoading=false; render(); return; }
-  if(!currentCode()) { state.standings=[]; state.standingsLoading=false; render(); return; }
+  if(currentMode()==='team' || currentMode()==='national-competition'){ state.standings=[]; state.standingsMeta=null; state.standingsLoading=false; render(); return; }
+  if(!currentCode()) { state.standings=[]; state.standingsMeta=null; state.standingsLoading=false; render(); return; }
   state.standingsLoading=true; render();
   try{ const res = await fetch(`/api/standings?competition=${encodeURIComponent(currentCode())}`); const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore classifica'); state.standings = data.standings || []; state.standingsMeta = data.debug || null; }
   catch(err){ state.standings=[]; state.standingsMeta=null; }
@@ -710,30 +724,35 @@ async function loadTransfers(){
   state.transfersLoading=false; render();
 }
 async function openMatch(id){
-  state.selectedTeam=null; state.teamData=null; state.selected={loading:true}; render(); syncHistory('push');
+  state.selectedTeam=null; state.teamData=null; state.selected={loading:true}; render(); syncHistory();
   try{ const res=await fetch(`/api/match?id=${id}`); const data=await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel dettaglio partita'); state.selected={data}; }
   catch(err){ state.selected={error:err.message || 'Errore nel dettaglio partita'}; }
-  render();
+  render(); syncHistory(true);
 }
-function closeMatch(){ state.selected=null; render(); syncHistory('push'); }
+function closeMatch(){ state.selected=null; render(); syncHistory(true); }
 async function openTeam(teamId, teamName){
-  state.selected=null; state.selectedTeam={id:teamId,name:teamName}; state.teamLoading=true; state.teamData=null; state.teamTab='overview'; render(); syncHistory('push');
+  state.selected=null; state.selectedTeam={id:teamId,name:teamName}; state.teamLoading=true; state.teamData=null; state.teamTab='overview'; render(); syncHistory();
   try{ const res=await fetch(`/api/team?competition=${encodeURIComponent(currentCode())}&team=${teamId}`); const data=await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel caricamento squadra'); state.teamData=data; }
   catch(err){ state.teamData={error:err.message || 'Errore nel caricamento squadra'}; }
   state.teamLoading=false; render();
 }
-function closeTeam(){ state.selectedTeam=null; state.teamData=null; state.teamLoading=false; state.teamTab='overview'; render(); syncHistory('push'); }
+function closeTeam(){ state.selectedTeam=null; state.teamData=null; state.teamLoading=false; state.teamTab='overview'; render(); syncHistory(true); }
+
+window.addEventListener('mouseup', (event) => {
+  if (event.button === 3) window.history.back();
+  if (event.button === 4) window.history.forward();
+});
 
 window.addEventListener('popstate', (event) => {
-  if(event.state){
-    Object.assign(state, event.state);
-    render();
-  }
+  if(!event.state) return;
+  state._historyLock = true;
+  Object.assign(state, event.state);
+  state._historyLock = false;
+  render();
+  if(state.page==='competition' && state.competition && !state.fixtures.length && !state.loading) loadCompetitionData();
 });
-window.addEventListener('mousedown', (event) => {
-  if(event.button===3){ event.preventDefault(); window.history.back(); }
-  if(event.button===4){ event.preventDefault(); window.history.forward(); }
-});
+
+syncHistory(true);
 render();
 
 </script>

@@ -33,8 +33,8 @@ export const COMP_MAP = {
   "europa-league": { league: 3, season: 2025, label: "UEFA Europa League" },
   "conference-league": { league: 848, season: 2025, label: "UEFA Europa Conference League" },
   "nations-league": { league: 5, season: 2024, label: "UEFA Nations League" },
-  "mondiali": { league: 1, season: 2026, label: "World Cup" },
-  "qualificazioni-mondiali": { league: 32, season: 2024, label: "World Cup - Qualification Europe" },
+  "world-cup": { league: 1, season: 2026, label: "Mondiali" },
+  "world-cup-qualifiers-europe": { league: 32, season: 2024, label: "Qualificazioni Mondiali" }
 };
 
 export async function fetchJson(url, key) {
@@ -48,8 +48,8 @@ export function getCfg(comp) {
   return COMP_MAP[comp];
 }
 
-
 export const EURO_COMP_CODES = new Set(['champions-league', 'europa-league', 'conference-league']);
+export const NATIONAL_COMP_CODES = new Set(['nations-league', 'world-cup', 'world-cup-qualifiers-europe']);
 
 const ITALIAN_CLUB_NAMES = new Set([
   'atalanta','bologna','cagliari','como','cremonese','empoli','fiorentina','genoa','hellas verona','inter','internazionale',
@@ -58,7 +58,7 @@ const ITALIAN_CLUB_NAMES = new Set([
 ]);
 
 function normalizeName(value) {
-  return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  return String(value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export function isItalianClubLike(team) {
@@ -73,8 +73,15 @@ export async function getItalianTeamIdsForCompetition(cfg, key) {
   const fixtureTeams = (fixturesData.response || []).flatMap(item => [item?.teams?.home, item?.teams?.away]).filter(Boolean);
   const ids = Array.from(new Set(fixtureTeams.map(team => Number(team?.id)).filter(Boolean)));
   const teamsPayload = await Promise.all(ids.map(id => fetchJson(`https://v3.football.api-sports.io/teams?id=${id}`, key).catch(() => ({ response: [] }))));
-  const fromTeamsEndpoint = teamsPayload.flatMap(payload => payload.response || []).filter(entry => isItalianClubLike(entry)).map(entry => Number(entry.team?.id)).filter(Boolean);
-  const fromFixturesFallback = fixtureTeams.filter(team => isItalianClubLike(team)).map(team => Number(team?.id)).filter(Boolean);
+  const fromTeamsEndpoint = teamsPayload
+    .flatMap(payload => payload.response || [])
+    .filter(entry => isItalianClubLike(entry))
+    .map(entry => Number(entry.team?.id))
+    .filter(Boolean);
+  const fromFixturesFallback = fixtureTeams
+    .filter(team => isItalianClubLike(team))
+    .map(team => Number(team?.id))
+    .filter(Boolean);
   return new Set([...fromTeamsEndpoint, ...fromFixturesFallback]);
 }
 
@@ -89,4 +96,90 @@ export function filterStandingsByTeamIds(standings, allowedTeamIds) {
   if (!allowedTeamIds) return rows;
   if (!allowedTeamIds.size) return [];
   return rows.filter(row => allowedTeamIds.has(Number(row?.team?.id)) || isItalianClubLike(row?.team));
+}
+
+export function isFinishedFixture(item) {
+  return ['FT', 'AET', 'PEN'].includes(String(item?.fixture?.status?.short || ''));
+}
+
+export function isLiveFixture(item) {
+  return ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'LIVE', 'INT'].includes(String(item?.fixture?.status?.short || ''));
+}
+
+export function isScheduledFixture(item) {
+  return !isFinishedFixture(item) && !isLiveFixture(item);
+}
+
+function pairKey(item) {
+  const ids = [Number(item?.teams?.home?.id || 0), Number(item?.teams?.away?.id || 0)].sort((a, b) => a - b);
+  return ids.join('-');
+}
+
+export function buildRecentItalianEuroSummary(fixtures, allowedTeamIds, maxItems = 8) {
+  const finished = (fixtures || []).filter(isFinishedFixture).sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
+  const grouped = new Map();
+  for (const item of finished) {
+    const key = pairKey(item);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(item);
+  }
+
+  const summaries = [];
+  for (const matches of grouped.values()) {
+    matches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+    const latest = matches[matches.length - 1];
+    const refHome = latest?.teams?.home || {};
+    const refAway = latest?.teams?.away || {};
+    const homeItalian = allowedTeamIds?.has(Number(refHome.id));
+    const awayItalian = allowedTeamIds?.has(Number(refAway.id));
+    if (!homeItalian && !awayItalian) continue;
+
+    let aggHome = 0;
+    let aggAway = 0;
+    for (const match of matches) {
+      const sameOrientation = Number(match?.teams?.home?.id) === Number(refHome.id);
+      const hg = Number(match?.goals?.home ?? 0);
+      const ag = Number(match?.goals?.away ?? 0);
+      if (sameOrientation) {
+        aggHome += hg;
+        aggAway += ag;
+      } else {
+        aggHome += ag;
+        aggAway += hg;
+      }
+    }
+
+    let qualifiedId = null;
+    if (aggHome !== aggAway) {
+      qualifiedId = aggHome > aggAway ? Number(refHome.id) : Number(refAway.id);
+    } else if (String(latest?.fixture?.status?.short || '') === 'PEN') {
+      const pHome = Number(latest?.score?.penalty?.home ?? -1);
+      const pAway = Number(latest?.score?.penalty?.away ?? -1);
+      if (pHome >= 0 && pAway >= 0 && pHome !== pAway) {
+        qualifiedId = pHome > pAway ? Number(refHome.id) : Number(refAway.id);
+      }
+    }
+
+    summaries.push({
+      updatedAt: latest?.fixture?.date,
+      home: {
+        id: refHome.id,
+        name: refHome.name,
+        score: latest?.goals?.home ?? '-',
+        aggregate: aggHome,
+        qualified: Number(refHome.id) === qualifiedId
+      },
+      away: {
+        id: refAway.id,
+        name: refAway.name,
+        score: latest?.goals?.away ?? '-',
+        aggregate: aggAway,
+        qualified: Number(refAway.id) === qualifiedId
+      },
+      legs: matches.length
+    });
+  }
+
+  summaries.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  return summaries.slice(0, maxItems);
 }
