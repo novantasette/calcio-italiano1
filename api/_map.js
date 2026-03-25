@@ -32,6 +32,9 @@ export const COMP_MAP = {
   "champions-league": { league: 2, season: 2025, label: "UEFA Champions League" },
   "europa-league": { league: 3, season: 2025, label: "UEFA Europa League" },
   "conference-league": { league: 848, season: 2025, label: "UEFA Europa Conference League" },
+  "nations-league": { league: 5, season: 2024, label: "UEFA Nations League" },
+  "mondiali": { league: 1, season: 2026, label: "World Cup" },
+  "qualificazioni-mondiali": { league: 32, season: 2024, label: "World Cup - Qualification Europe" },
 };
 
 export async function fetchJson(url, key) {
