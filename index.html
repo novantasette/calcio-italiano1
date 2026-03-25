@@ -15,9 +15,8 @@
     button,input{font:inherit} a{color:inherit}
     .topbar{position:sticky;top:0;z-index:40;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 22px;background:rgba(6,16,26,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
     .brand-inline{display:flex;align-items:center;gap:12px;min-width:0}
-    .logo{width:48px;height:48px;border-radius:50%;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 30%, #29527d, #08101d 70%);border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow)}
-    .logo:before{content:"";position:absolute;inset:6px;border-radius:50%;background:conic-gradient(from 20deg,#1cc46a 0 27%,#f8f8f8 27% 57%,#d94c4c 57% 84%,#1cc46a 84% 100%)}
-    .logo:after{content:"⚽";position:absolute;inset:11px;border-radius:50%;display:grid;place-items:center;background:#08111d;color:#fff;font-size:1rem}
+    .logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(180deg,#0f2238,#09131f);border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow);flex:0 0 auto}
+    .logo img{display:block;width:100%;height:100%;object-fit:cover}
     .brand-inline h1{margin:0;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .brand-inline small{display:block;color:var(--muted);margin-top:2px}
     .topnav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
@@ -72,7 +71,20 @@
     .directory-card{cursor:pointer}
     .team-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
     .tab-shell{margin-top:14px}
-    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split{grid-template-columns:1fr}}
+    
+    .macro-grid,.quick-grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
+    .macro-tile,.quick-card{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+    .macro-tile strong,.quick-card strong{display:block;margin-bottom:6px}
+    .macro-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .macro-actions button{padding:9px 12px;border-radius:12px;border:1px solid var(--line-strong);background:#0c192b;color:var(--text);cursor:pointer}
+    .hero-home{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:18px}
+    .hero-glow{position:relative;overflow:hidden}
+    .hero-glow:before{content:"";position:absolute;inset:auto -15% -35% auto;width:260px;height:260px;background:radial-gradient(circle,#2ea8ff55 0%,transparent 68%);pointer-events:none}
+    .empty-shell{display:grid;gap:16px}
+    .select-note{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:.92rem;color:#dce7f6}
+    .section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+
+    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split,.macro-grid,.quick-grid,.hero-home{grid-template-columns:1fr}}
     @media (max-width:820px){.topbar{padding:14px}.content{padding:18px}.topnav{justify-content:flex-start}.search{min-width:100%}h1{font-size:2rem}}
   </style>
 </head>
@@ -83,12 +95,10 @@ const DISCORD_URL = '#';
 const NAV_ITEMS = [
   { key:'home', label:'Home' },
   { key:'teams', label:'Squadre' },
-  { key:'support', label:'Supporta il progetto' },
-  { key:'discord', label:'Discord' },
+  { key:'top', label:'Top' },
   { key:'market', label:'Mercato' },
-  { key:'scorers', label:'Top Marcatori' },
-  { key:'assists', label:'Top Assist' },
-  { key:'ratings', label:'Top Valutazioni' }
+  { key:'support', label:'Supporta il progetto' },
+  { key:'discord', label:'Discord' }
 ];
 
 const CATEGORY_TREE = [
@@ -121,18 +131,18 @@ const CATEGORY_TREE = [
 ];
 
 const state = {
-  page:'home', competition:'Serie A', filter:'all', search:'', fixtures:[], loading:false, error:'',
+  page:'home', competition:'', filter:'all', search:'', fixtures:[], loading:false, error:'',
   selected:null, meta:null, standings:[], standingsLoading:false, selectedTeam:null, teamData:null, teamLoading:false,
   openMacro:'serie-a', marketTab:'official', rankings:{ scorers:[], assists:[], ratings:[] },
   rankingsLoading:{ scorers:false, assists:false, ratings:false }, rankingsNote:{ scorers:'', assists:'', ratings:'' },
-  transfers:[], transfersLoading:false, transfersNote:'', teamDirectorySearch:'', teamTab:'overview'
+  transfers:[], transfersLoading:false, transfersNote:'', teamDirectorySearch:'', teamTab:'overview', topTab:'scorers'
 };
 
 const esc=s=>String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const allItems = CATEGORY_TREE.flatMap(group => group.items);
 const getComp = () => allItems.find(c => c.name === state.competition);
-const currentCode = () => getComp()?.code || 'serie-a';
-const currentMacro = () => CATEGORY_TREE.find(group => group.items.some(item => item.name === state.competition))?.label || 'Serie A';
+const currentCode = () => getComp()?.code || '';
+const currentMacro = () => CATEGORY_TREE.find(group => group.items.some(item => item.name === state.competition))?.label || 'Seleziona una categoria';
 const localDate = d => new Date(d).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
 const sortByDateDesc = list => [...list].sort((a,b)=>new Date(b.fixture.date)-new Date(a.fixture.date));
 function statusClass(short){ if(['1H','2H','HT','ET','BT','P','LIVE','INT'].includes(short)) return 'live'; if(['FT','AET','PEN'].includes(short)) return 'finished'; return 'scheduled'; }
@@ -143,15 +153,21 @@ function parseNum(v){ const n=parseFloat(String(v||'0').replace('%','').replace(
 
 const STAT_LABELS = {
   'Shots on Goal':'Tiri in porta','Shots off Goal':'Tiri fuori','Total Shots':'Tiri totali','Blocked Shots':'Tiri bloccati',
-  'Shots insidebox':'Tiri in area','Shots outsidebox':'Tiri fuori area','Fouls':'Falli','Corner Kicks':'Calci d\'angolo',
+  'Shots insidebox':'Tiri in area','Shots outsidebox':'Tiri da fuori area','Fouls':'Falli','Corner Kicks':'Calci d\'angolo',
   'Offsides':'Fuorigioco','Ball Possession':'Possesso palla','Yellow Cards':'Cartellini gialli','Red Cards':'Cartellini rossi',
   'Goalkeeper Saves':'Parate del portiere','Total passes':'Passaggi totali','Passes accurate':'Passaggi riusciti',
   'Passes %':'Precisione passaggi','expected_goals':'Gol attesi','Goals Prevented':'Gol evitati','Penalty Kicks':'Rigori',
-  'Big Chances Created':'Grandi occasioni create','Big Chances Missed':'Grandi occasioni sprecate'
+  'Big Chances Created':'Grandi occasioni create','Big Chances Missed':'Grandi occasioni sprecate','Substitutions':'Sostituzioni',
+  'Attacks':'Attacchi','Dangerous Attacks':'Attacchi pericolosi','Hit Woodwork':'Legni colpiti','Free Kicks':'Calci di punizione',
+  'Throwins':'Rimesse laterali','Goal Attempts':'Tentativi di gol','Goals':'Gol'
+};
+const EVENT_TYPE_LABELS = {
+  Goal:'Gol',Card:'Cartellino',subst:'Sostituzione',Var:'VAR'
 };
 const EVENT_DETAIL_LABELS = {
   'Normal Goal':'Gol','Own Goal':'Autogol','Penalty':'Rigore','Missed Penalty':'Rigore sbagliato','Yellow Card':'Ammonizione',
-  'Red Card':'Espulsione','Substitution':'Sostituzione','Var':'VAR','Goal Disallowed':'Gol annullato'
+  'Red Card':'Espulsione','Substitution':'Sostituzione','subst':'Sostituzione','Var':'VAR','Goal Disallowed':'Gol annullato',
+  'Penalty Shootout':'Rigori','Card Upgrade':'Cartellino modificato'
 };
 
 function renderStat(stats,name,labelOverride){
@@ -175,11 +191,11 @@ function uniqueTeams(){
 }
 
 function topbar(){
-  return `<div class="topbar"><div class="brand-inline"><div class="logo" aria-hidden="true"></div><div><h1>Calcio Italiano Live</h1><small>Risultati, classifiche e approfondimenti</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')">${item.label}</button>`).join('')}</div></div>`;
+  return `<div class="topbar"><div class="brand-inline"><div class="logo" aria-hidden="true"><img src="logo.svg" alt="Logo Calcio Italiano Live" /></div><div><h1>Calcio Italiano Live</h1><small>Risultati, classifiche e approfondimenti</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')">${item.label}</button>`).join('')}</div></div>`;
 }
 
 function sidebar(){
-  return `<aside class="sidebar"><h3>Campionati</h3>${CATEGORY_TREE.map(group=>`<div class="macro ${state.openMacro===group.key?'open':''}"><button class="head" onclick="toggleMacro('${group.key}')"><span>${group.label}</span><span>${state.openMacro===group.key?'−':'+'}</span></button><div class="subs">${group.items.map(item=>`<button class="${item.disabled?'disabled':''} ${state.competition===item.name?'active':''}" onclick="${item.disabled?'return false':`selectCompetition('${item.name}')`}">${item.name}${item.disabled?' <span class="muted">(in arrivo)</span>':''}</button>`).join('')}</div></div>`).join('')}</aside>`;
+  return `<aside class="sidebar"><h3>Campionati</h3><div class="footer-note" style="margin:0 0 14px">Apri una macro-categoria e scegli la sottocategoria da visualizzare.</div>${CATEGORY_TREE.map(group=>`<div class="macro ${state.openMacro===group.key?'open':''}"><button class="head" onclick="toggleMacro('${group.key}')"><span>${group.label}</span><span>${state.openMacro===group.key?'−':'+'}</span></button><div class="subs">${group.items.map(item=>`<button class="${item.disabled?'disabled':''} ${state.competition===item.name?'active':''}" onclick="${item.disabled?'return false':`selectCompetition('${item.name}')`}">${item.name}${item.disabled?' <span class="muted">(in arrivo)</span>':''}</button>`).join('')}</div></div>`).join('')}</aside>`;
 }
 
 function toolbar(){
@@ -187,7 +203,14 @@ function toolbar(){
 }
 
 function homeHero(){
-  return `<div class="hero"><div class="card hero-main"><div class="muted small">${esc(currentMacro())} • ${esc(state.competition)}</div><h1>Il calcio italiano, in una vista più pulita.</h1><p>Ora hai una top bar separata, macro-categorie con sottocategorie, sezione squadre dedicata, mercato diviso in ufficiali e rumors e classifiche individuali più ordinate.</p><div class="pills"><span class="pill">Live</span><span class="pill">Classifica</span><span class="pill">Mercato</span><span class="pill">Top Marcatori</span><span class="pill">Squadre</span></div></div><div class="card hero-side"><h2>Stato rapido</h2><div class="kpi"><div class="row"><strong>Competizione attiva</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Partite caricate</strong><div class="muted small">${state.fixtures.length || '—'}</div></div><div class="row"><strong>Ordine</strong><div class="muted small">Più recenti in alto</div></div></div></div></div>`;
+  if(!state.competition){
+    return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano Live</div><h1>Una home più pulita, prima scegli tu cosa seguire.</h1><p>All'apertura del sito resti su una vera pagina Home: nessuna classifica o lista partite mostrata finché non selezioni una competizione. Da qui puoi entrare subito nel campionato che ti interessa oppure aprire le sezioni Squadre, Top e Mercato.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Competizioni italiane</span><span class="pill">Squadre</span><span class="pill">Top</span><span class="pill">Mercato</span></div><div class="macro-actions"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Vai a Top</button><button onclick="setPage('market')">Apri Mercato</button></div></div><div class="card hero-side"><h2>Consiglio UX</h2><div class="hero-list"><div class="feature"><span>Step 1</span><strong>Scegli la competizione dal menu laterale</strong></div><div class="feature"><span>Step 2</span><strong>Visualizza partite, classifica e dettagli</strong></div><div class="feature"><span>Step 3</span><strong>Esplora Squadre, Top e Mercato</strong></div></div></div></div>`;
+  }
+  return `<div class="hero"><div class="card hero-main"><div class="muted small">${esc(currentMacro())} • ${esc(state.competition)}</div><h1>${esc(state.competition)}</h1><p>Vista principale della competizione con partite, classifica, schede squadra e statistiche tradotte in italiano. Puoi cambiare categoria dal menu laterale in qualsiasi momento.</p><div class="pills"><span class="pill">Live</span><span class="pill">Classifica</span><span class="pill">Dettagli partita</span><span class="pill">Squadre</span></div></div><div class="card hero-side"><h2>Stato rapido</h2><div class="kpi"><div class="row"><strong>Competizione attiva</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Partite caricate</strong><div class="muted small">${state.fixtures.length || '—'}</div></div><div class="row"><strong>Ordine</strong><div class="muted small">Più recenti in alto</div></div></div></div></div>`;
+}
+
+function homeLanding(){
+  return `<div class="empty-shell"><div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Scegli una competizione</h2><div class="muted small">Le macro-categorie nel menu laterale aprono le relative sottocategorie. Qui sotto trovi anche una selezione rapida.</div></div><div class="muted small">Nessun contenuto caricato finché non selezioni una competizione.</div></div><div class="macro-grid">${CATEGORY_TREE.map(group=>`<div class="macro-tile"><strong>${group.label}</strong><div class="directory-meta">${group.items.filter(i=>!i.disabled).length} sottocategorie disponibili</div><div class="macro-actions">${group.items.map(item=>item.disabled?`<button disabled style="opacity:.55;cursor:not-allowed">${item.name}</button>`:`<button onclick="selectCompetition('${item.name}')">${item.name}</button>`).join('')}</div></div>`).join('')}</div></div><div class="quick-grid"><div class="card quick-card"><strong>Home</strong><div class="directory-meta">Pagina iniziale leggera e ordinata, senza dati mostrati subito.</div></div><div class="card quick-card"><strong>Top</strong><div class="directory-meta">Un solo menu con marcatori, assist e valutazioni.</div></div><div class="card quick-card"><strong>Squadre</strong><div class="directory-meta">Ricerca squadra, rosa, infortuni, cartellini, formazioni e movimenti ufficiali.</div></div></div>`;
 }
 
 function matchesList(){
@@ -206,7 +229,7 @@ function standingsCard(){
   return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Classifica</h2><div class="muted small">${esc(state.competition)}</div></div>${state.standingsLoading?`<div class="notice">Caricamento classifica...</div>`:!state.standings.length?`<div class="notice">Classifica non disponibile per questa categoria.</div>`:`<table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>N</th><th>P</th><th>DR</th></tr></thead><tbody>${state.standings.map(r=>`<tr><td>${r.rank}</td><td>${teamLink(r.team.name,r.team.id)}</td><td>${r.points}</td><td>${r.all.played}</td><td>${r.all.win}</td><td>${r.all.draw}</td><td>${r.all.lose}</td><td>${r.goalsDiff}</td></tr>`).join('')}</tbody></table>`}</div>`;
 }
 
-function homeView(){ return `<div class="content">${homeHero()}<div class="grid grid2">${matchesList()}${standingsCard()}</div></div>`; }
+function homeView(){ return `<div class="content">${homeHero()}${!state.competition ? homeLanding() : `<div class="grid grid2">${matchesList()}${standingsCard()}</div>`}</div>`; }
 
 function detailView(){
   if(!state.selected) return '';
@@ -217,7 +240,7 @@ function detailView(){
   const interestingStats=['Shots on Goal','Shots off Goal','Total Shots','Blocked Shots','Shots insidebox','Shots outsidebox','Ball Possession','Corner Kicks','Offsides','Fouls','Yellow Cards','Red Cards','Goalkeeper Saves','Total passes','Passes accurate','Passes %','expected_goals','Goals Prevented'];
   const statsHtml = `<div class="card section"><h2>Statistiche</h2>${stats.length>=2?interestingStats.map(s=>renderStat(stats,s)).join(''):`<div class="muted small">Statistiche non disponibili.</div>`}</div>`;
   const lineupsHtml = `<div class="card section"><h2>Formazioni</h2>${lineups.length?`<div class="split">${lineups.map(lineupCard).join('')}</div>`:`<div class="muted small">Formazioni non disponibili.</div>`}</div>`;
-  return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="grid grid2"><div><div class="card section"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${teamLink(m.teams.home.name,m.teams.home.id)} vs ${teamLink(m.teams.away.name,m.teams.away.id)}</div><div class="muted small">${esc(m.fixture.venue?.name||'Stadio non disponibile')}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div><div class="card section"><h2>Eventi</h2>${events.length?events.map(e=>`<div class="event"><div class="rowflex"><strong>${e.time.elapsed?e.time.elapsed+"'":'-'} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div><div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div><div class="muted small">${EVENT_DETAIL_LABELS[e.detail] || STAT_LABELS[e.type] || esc(e.type||'')}${e.detail && !EVENT_DETAIL_LABELS[e.detail] ? ' • '+esc(e.detail):''}</div></div>`).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
+  return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="grid grid2"><div><div class="card section"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${teamLink(m.teams.home.name,m.teams.home.id)} vs ${teamLink(m.teams.away.name,m.teams.away.id)}</div><div class="muted small">${esc(m.fixture.venue?.name||'Stadio non disponibile')}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div><div class="card section"><h2>Eventi</h2>${events.length?events.map(e=>`<div class="event"><div class="rowflex"><strong>${e.time.elapsed?e.time.elapsed+"'":'-'} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div><div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div><div class="muted small">${EVENT_DETAIL_LABELS[e.detail] || EVENT_TYPE_LABELS[e.type] || STAT_LABELS[e.type] || esc(e.type||'')}${e.detail && !EVENT_DETAIL_LABELS[e.detail] ? ' • '+esc(e.detail):''}</div></div>`).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
 }
 
 function teamTabOverview(d){
@@ -254,10 +277,13 @@ function teamView(){
   };
   return `<div class="content"><a class="back" onclick="closeTeam()">← Torna alla competizione</a><div class="hero"><div class="card hero-main"><div class="team-header"><div><div class="muted small">${esc(state.competition)}</div><h1 style="font-size:2.05rem">${esc(d.team.name)}</h1><p>Pagina squadra con ricerca dedicata, rosa, infortuni, riepilogo cartellini, formazioni recenti e movimenti ufficiali collegati.</p></div><button class="ghost-btn" onclick="setPage('teams')">Vai a Squadre</button></div><div class="team-pills"><span class="pill">Posizione: ${d.standing?d.standing.rank:'—'}</span><span class="pill">Punti: ${d.standing?d.standing.points:'—'}</span><span class="pill">Partite: ${d.standing?d.standing.all.played:'—'}</span><span class="pill">Squadra ID: ${esc(d.team.id || '—')}</span></div><div class="mini-tabs" style="margin-top:16px">${[
       ['overview','Panoramica'],['squad','Rosa'],['injuries','Infortuni'],['cards','Ammonizioni'],['formations','Formazioni'],['news','Notizie']
-    ].map(([key,label])=>`<button class="${state.teamTab===key?'active':''}" onclick="setTeamTab('${key}')">${label}</button>`).join('')}</div></div><div class="card hero-side"><h2>Statistiche rapide</h2>${d.standing?`<div class="grid grid3"><div class="feature"><div><strong>Vittorie</strong><div class="muted small">${d.standing.all.win}</div></div></div><div class="feature"><div><strong>Pareggi</strong><div class="muted small">${d.standing.all.draw}</div></div></div><div class="feature"><div><strong>Sconfitte</strong><div class="muted small">${d.standing.all.lose}</div></div></div></div>`:`<div class="muted small">Statistiche squadra non disponibili.</div>`}<div class="hero-list"><div class="feature"><span>Gol fatti</span><strong>${esc(d.teamStats?.goals?.for?.total?.total ?? '—')}</strong></div><div class="feature"><span>Gol subiti</span><strong>${esc(d.teamStats?.goals?.against?.total?.total ?? '—')}</strong></div><div class="feature"><span>Clean sheet</span><strong>${esc(d.teamStats?.clean_sheet?.total ?? '—')}</strong></div></div></div></div>${tabMap[state.teamTab] || tabMap.overview}</div>`;
+    ].map(([key,label])=>`<button class="${state.teamTab===key?'active':''}" onclick="setTeamTab('${key}')">${label}</button>`).join('')}</div></div><div class="card hero-side"><h2>Statistiche rapide</h2>${d.standing?`<div class="grid grid3"><div class="feature"><div><strong>Vittorie</strong><div class="muted small">${d.standing.all.win}</div></div></div><div class="feature"><div><strong>Pareggi</strong><div class="muted small">${d.standing.all.draw}</div></div></div><div class="feature"><div><strong>Sconfitte</strong><div class="muted small">${d.standing.all.lose}</div></div></div></div>`:`<div class="muted small">Statistiche squadra non disponibili.</div>`}<div class="hero-list"><div class="feature"><span>Gol fatti</span><strong>${esc(d.teamStats?.goals?.for?.total?.total ?? '—')}</strong></div><div class="feature"><span>Gol subiti</span><strong>${esc(d.teamStats?.goals?.against?.total?.total ?? '—')}</strong></div><div class="feature"><span>Porta inviolata</span><strong>${esc(d.teamStats?.clean_sheet?.total ?? '—')}</strong></div></div></div></div>${tabMap[state.teamTab] || tabMap.overview}</div>`;
 }
 
 function teamsView(){
+  if(!state.competition){
+    return `<div class="content"><div class="card section"><h1 style="font-size:2rem">Squadre</h1><p>Prima seleziona una competizione dal menu laterale. Dopo vedrai la barra di ricerca e la directory completa delle squadre collegate a quella categoria.</p></div></div>`;
+  }
   const q = state.teamDirectorySearch.trim().toLowerCase();
   let teams = uniqueTeams();
   if(q) teams = teams.filter(t => t.name.toLowerCase().includes(q));
@@ -285,7 +311,14 @@ function rankingView(type, title, description){
   const list = state.rankings[type] || [];
   const loading = state.rankingsLoading[type];
   const note = state.rankingsNote[type];
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition)}</div><h1>${title}</h1><p>${description}</p><div class="subnav">${['scorers','assists','ratings'].map(key=>`<button class="${state.page===key?'active':''}" onclick="setPage('${key}')">${key==='scorers'?'Top Marcatori':key==='assists'?'Top Assist':'Top Valutazioni'}</button>`).join('')}</div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Macro-categoria</strong><div class="muted small">${esc(currentMacro())}</div></div><div class="row"><strong>Aggiornamento</strong><div class="muted small">Da API-Football</div></div></div></div></div><div class="card section">${loading?`<div class="notice">Caricamento classifica...</div>`:!list.length?`<div class="notice">Nessun dato disponibile per questa competizione.</div>`:`<div class="list">${list.map((item,idx)=>rankingCard(item,idx,type)).join('')}</div>`}${note?`<div class="footer-note">${esc(note)}</div>`:''}</div></div>`;
+  return `<div class="card section">${loading?`<div class="notice">Caricamento classifica...</div>`:!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:!list.length?`<div class="notice">Nessun dato disponibile per questa competizione.</div>`:`<div class="list">${list.map((item,idx)=>rankingCard(item,idx,type)).join('')}</div>`}${note?`<div class="footer-note">${esc(note)}</div>`:''}</div>`;
+}
+
+function topView(){
+  const type = state.topTab || 'scorers';
+  const title = type==='scorers' ? 'Top Marcatori' : type==='assists' ? 'Top Assist' : 'Top Valutazioni';
+  const description = type==='scorers' ? 'Classifica marcatori della competizione selezionata.' : type==='assists' ? 'Classifica assist della competizione selezionata.' : 'Giocatori con le migliori valutazioni medie rilevate nei dati disponibili.';
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Menu unico per raccogliere le classifiche individuali più utili. Il nome "Top" qui funziona bene perché è rapido, chiaro e pulito nella navigazione.</p><div class="subnav">${['scorers','assists','ratings'].map(key=>`<button class="${(state.topTab||'scorers')===key?'active':''}" onclick="setTopTab('${key}')">${key==='scorers'?'Marcatori':key==='assists'?'Assist':'Valutazioni'}</button>`).join('')}</div><div class="footer-note" style="margin-top:12px">${description}</div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Macro-categoria</strong><div class="muted small">${esc(currentMacro())}</div></div><div class="row"><strong>Fonte</strong><div class="muted small">API-Football</div></div></div></div></div>${rankingView(type, title, description)}</div>`;
 }
 
 function marketView(){
@@ -294,7 +327,7 @@ function marketView(){
     'Puoi collegare una fonte custom o un backend dedicato alle indiscrezioni.',
     'La sezione ufficiali resta invece alimentata dai trasferimenti confermati.'
   ];
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition)}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. La parte ufficiale usa i dati transfer disponibili; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / transfers</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Pronto per integrazione custom</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(t.update?.type || 'Trasferimento')} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. La parte ufficiale usa i dati transfer disponibili; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / transfers</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Pronto per integrazione custom</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(t.update?.type || 'Trasferimento')} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
 }
 
 function mainView(){
@@ -304,9 +337,7 @@ function mainView(){
   if(state.page==='support') return supportView();
   if(state.page==='discord') return discordView();
   if(state.page==='market') return marketView();
-  if(state.page==='scorers') return rankingView('scorers', 'Top Marcatori', 'Classifica marcatori della competizione selezionata.');
-  if(state.page==='assists') return rankingView('assists', 'Top Assist', 'Classifica assistman della competizione selezionata.');
-  if(state.page==='ratings') return rankingView('ratings', 'Top Valutazioni', 'Giocatori con le migliori valutazioni medie rilevate nei dati disponibili.');
+  if(state.page==='top') return topView();
   return homeView();
 }
 
@@ -317,10 +348,10 @@ function setTeamDirectorySearch(v){ state.teamDirectorySearch=v; render(); }
 function setTeamTab(v){ state.teamTab=v; render(); }
 function toggleMacro(key){ state.openMacro = state.openMacro === key ? '' : key; render(); }
 function setMarketTab(v){ state.marketTab=v; render(); if(v==='official') loadTransfers(); }
+function setTopTab(v){ state.topTab=v; state.page='top'; render(); loadRanking(v); }
 function setPage(page){
   state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render();
-  if(page==='scorers' || page==='assists') loadRanking(page);
-  if(page==='ratings') loadRanking('ratings');
+  if(page==='top') loadRanking(state.topTab || 'scorers');
   if(page==='market') loadTransfers();
 }
 function selectCompetition(name){
@@ -328,13 +359,17 @@ function selectCompetition(name){
   state.openMacro = group?.key || state.openMacro; state.page='home'; state.competition=name; state.filter='all'; state.search='';
   state.fixtures=[]; state.selected=null; state.selectedTeam=null; state.teamData=null; state.meta=null; state.standings=[]; state.teamDirectorySearch=''; state.teamTab='overview';
   loadCompetitionData();
+  if(state.page==='top') loadRanking(state.topTab || 'scorers');
+  if(state.page==='market' && state.marketTab==='official') loadTransfers();
 }
 async function loadFixturesOnly(){
+  if(!currentCode()) { state.fixtures=[]; state.meta=null; return; }
   const res = await fetch(`/api/fixtures?competition=${encodeURIComponent(currentCode())}`);
   const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel caricamento');
   state.fixtures = data.fixtures || []; state.meta = data.debug || null;
 }
 async function loadStandings(){
+  if(!currentCode()) { state.standings=[]; state.standingsLoading=false; render(); return; }
   state.standingsLoading=true; render();
   try{ const res = await fetch(`/api/standings?competition=${encodeURIComponent(currentCode())}`); const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore classifica'); state.standings = data.standings || []; }
   catch(err){ state.standings=[]; }
@@ -347,6 +382,7 @@ async function loadCompetitionData(){
   state.loading=false; render(); loadStandings();
 }
 async function loadRanking(type){
+  if(!currentCode()) { state.rankings[type]=[]; state.rankingsNote[type]='Seleziona una competizione per caricare la classifica.'; render(); return; }
   if(state.rankingsLoading[type]) return;
   state.rankingsLoading[type]=true; render();
   try{
@@ -358,6 +394,7 @@ async function loadRanking(type){
   state.rankingsLoading[type]=false; render();
 }
 async function loadTransfers(){
+  if(!currentCode()) { state.transfers=[]; state.transfersNote='Seleziona una competizione per caricare il mercato ufficiale.'; render(); return; }
   if(state.transfersLoading) return;
   state.transfersLoading=true; render();
   try{ const res = await fetch(`/api/transfers?competition=${encodeURIComponent(currentCode())}`); const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore caricamento mercato'); state.transfers = data.transfers || []; state.transfersNote = data.note || ''; }
@@ -379,7 +416,6 @@ async function openTeam(teamId, teamName){
 }
 function closeTeam(){ state.selectedTeam=null; state.teamData=null; state.teamLoading=false; state.teamTab='overview'; render(); }
 
-loadCompetitionData();
 </script>
 </body>
 </html>
