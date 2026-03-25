@@ -46,7 +46,7 @@ export async function fetchJson(url, key) {
     data = raw ? JSON.parse(raw) : {};
   } catch (err) {
     if (!r.ok) throw new Error(raw || 'Errore API esterna');
-    throw new Error('Risposta non valida dall'API esterna');
+    throw new Error("Risposta non valida dall'API esterna");
   }
   if (!r.ok) throw new Error(data?.message || raw || "Errore API esterna");
   return data;
