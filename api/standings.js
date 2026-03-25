@@ -1,4 +1,4 @@
-import { fetchJson, getCfg } from './_map.js';
+import { EURO_COMP_CODES, fetchJson, filterStandingsByTeamIds, getCfg, getItalianTeamIdsForCompetition } from './_map.js';
 
 export default async function handler(req, res) {
   const key = process.env.API_FOOTBALL_KEY;
@@ -10,7 +10,12 @@ export default async function handler(req, res) {
 
   try {
     const data = await fetchJson(`https://v3.football.api-sports.io/standings?league=${cfg.league}&season=${cfg.season}`, key);
-    const standings = data.response?.[0]?.league?.standings?.[0] || [];
+    const raw = data.response?.[0]?.league?.standings || [];
+    let standings = raw.flat();
+    if (EURO_COMP_CODES.has(comp)) {
+      const italianTeamIds = await getItalianTeamIdsForCompetition(cfg, key);
+      standings = filterStandingsByTeamIds(standings, italianTeamIds);
+    }
     return res.status(200).json({ standings });
   } catch (e) {
     return res.status(500).json({ error: e.message || "Errore nel proxy standings." });

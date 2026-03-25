@@ -71,7 +71,8 @@ export default async function handler(req, res) {
         }];
       });
 
-    const squad = squadData.response?.[0]?.players || [];
+    const ROLE_MAP = { Goalkeeper:'Portiere', Defender:'Difensore', Midfielder:'Centrocampista', Attacker:'Attaccante', Coach:'Allenatore' };
+    const squad = (squadData.response?.[0]?.players || []).map(player => ({ ...player, position: ROLE_MAP[player.position] || player.position }));
     const injuries = (injuriesData.response || []).slice(0, 20);
     const teamStats = statsData.response || {};
     const cards = mapCards(teamStats);

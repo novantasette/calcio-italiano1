@@ -1,4 +1,4 @@
-import { fetchJson, getCfg } from './_map.js';
+import { EURO_COMP_CODES, fetchJson, getCfg, getItalianTeamIdsForCompetition } from './_map.js';
 
 function parseRating(value) {
   const n = Number.parseFloat(String(value || '').replace(',', '.'));
@@ -16,6 +16,8 @@ export default async function handler(req, res) {
   try {
     const pagesToFetch = 4;
     const responses = [];
+    let italianTeamIds = null;
+    if (EURO_COMP_CODES.has(comp)) italianTeamIds = await getItalianTeamIdsForCompetition(cfg, key);
     for (let page = 1; page <= pagesToFetch; page += 1) {
       const data = await fetchJson(`https://v3.football.api-sports.io/players?league=${cfg.league}&season=${cfg.season}&page=${page}`, key);
       responses.push(...(data.response || []));
@@ -30,13 +32,16 @@ export default async function handler(req, res) {
         return { item, rating, stats };
       })
       .filter(x => x.rating !== null && (x.stats.games?.appearences || 0) >= 3)
+      .filter(x => !italianTeamIds || italianTeamIds.has(Number(x.stats.team?.id)))
       .sort((a, b) => b.rating - a.rating)
       .slice(0, 20)
       .map(x => x.item);
 
     return res.status(200).json({
       players,
-      note: 'Classifica calcolata sulle prime pagine disponibili dell\'endpoint giocatori della competizione.'
+      note: EURO_COMP_CODES.has(comp)
+        ? 'Classifica limitata ai giocatori delle squadre italiane presenti nella competizione europea.'
+        : 'Classifica calcolata sulle prime pagine disponibili dell'endpoint giocatori della competizione.'
     });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore nel proxy ratings.' });

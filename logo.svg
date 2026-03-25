@@ -1,23 +1,31 @@
-<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
   <defs>
-    <linearGradient id="bg" x1="40" y1="24" x2="216" y2="232" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#133152"/>
-      <stop offset="1" stop-color="#08111D"/>
+    <linearGradient id="bg" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081827"/>
+      <stop offset="1" stop-color="#0E2436"/>
     </linearGradient>
-    <linearGradient id="accent" x1="48" y1="52" x2="208" y2="204" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2FE07C"/>
-      <stop offset="0.5" stop-color="#F7F7F7"/>
-      <stop offset="1" stop-color="#F25353"/>
+    <linearGradient id="glow" x1="48" y1="40" x2="208" y2="216" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#23B25F"/>
+      <stop offset="0.5" stop-color="#F7F8FA"/>
+      <stop offset="1" stop-color="#D83A3A"/>
     </linearGradient>
+    <filter id="shadow" x="0" y="0" width="256" height="256" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
   </defs>
-  <rect x="20" y="20" width="216" height="216" rx="56" fill="url(#bg)"/>
-  <rect x="30" y="30" width="196" height="196" rx="46" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
-  <path d="M54 84C54 68.536 66.536 56 82 56H174C189.464 56 202 68.536 202 84V172C202 187.464 189.464 200 174 200H82C66.536 200 54 187.464 54 172V84Z" fill="#0C1A2B" stroke="url(#accent)" stroke-width="8"/>
-  <path d="M92 88L78 128L92 168" stroke="#24496E" stroke-width="8" stroke-linecap="round"/>
-  <path d="M164 88L178 128L164 168" stroke="#24496E" stroke-width="8" stroke-linecap="round"/>
-  <path d="M128 72V184" stroke="#24496E" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="128" cy="128" r="26" fill="#10233A" stroke="url(#accent)" stroke-width="8"/>
-  <path d="M95 128H161" stroke="#24496E" stroke-width="8" stroke-linecap="round"/>
-  <path d="M86 54C95 46 111 40 128 40C145 40 161 46 170 54" stroke="url(#accent)" stroke-width="7" stroke-linecap="round"/>
-  <path d="M87 203C96 211 111 216 128 216C145 216 160 211 169 203" stroke="url(#accent)" stroke-width="7" stroke-linecap="round"/>
+  <g filter="url(#shadow)">
+    <rect x="20" y="20" width="216" height="216" rx="56" fill="url(#bg)"/>
+    <rect x="32" y="32" width="192" height="192" rx="44" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+    <circle cx="128" cy="128" r="70" fill="#07131F" stroke="url(#glow)" stroke-width="14"/>
+    <path d="M128 70C145 70 160 76 171 87C182 98 188 113 188 128C188 145 182 160 171 171C160 182 145 188 128 188C111 188 96 182 85 171C74 160 68 145 68 128C68 113 74 98 85 87C96 76 111 70 128 70Z" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
+    <path d="M97 95L128 78L159 95V131C159 151 146 168 128 178C110 168 97 151 97 131V95Z" fill="#0B1725"/>
+    <path d="M101 96H120V164C113 160 107 154 101 147V96Z" fill="#20A958"/>
+    <path d="M120 96H136V172C133 174 130 176 128 177C125 176 122 174 120 172V96Z" fill="#F3F4F6"/>
+    <path d="M136 96H155V147C149 154 143 160 136 164V96Z" fill="#D93B3B"/>
+    <path d="M110 122H146" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="6" stroke-linecap="round"/>
+    <path d="M128 103V141" stroke="#FFFFFF" stroke-opacity="0.85" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="128" cy="128" r="10" fill="#081827" stroke="#FFFFFF" stroke-width="5"/>
+    <path d="M80 58C90 49 102 42 116 38" stroke="#23B25F" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+    <path d="M176 58C166 49 154 42 140 38" stroke="#D83A3A" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+  </g>
 </svg>

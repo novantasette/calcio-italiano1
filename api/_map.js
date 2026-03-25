@@ -44,3 +44,24 @@ export async function fetchJson(url, key) {
 export function getCfg(comp) {
   return COMP_MAP[comp];
 }
+
+
+export const EURO_COMP_CODES = new Set(['champions-league', 'europa-league', 'conference-league']);
+
+export async function getItalianTeamIdsForCompetition(cfg, key) {
+  const fixturesData = await fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}`, key);
+  const ids = Array.from(new Set((fixturesData.response || []).flatMap(item => [item?.teams?.home?.id, item?.teams?.away?.id]).filter(Boolean)));
+  const teamsPayload = await Promise.all(ids.map(id => fetchJson(`https://v3.football.api-sports.io/teams?id=${id}`, key).catch(() => ({ response: [] }))));
+  return new Set(teamsPayload.flatMap(payload => payload.response || []).filter(entry => String(entry.team?.country || '').toLowerCase() === 'italy').map(entry => Number(entry.team?.id)).filter(Boolean));
+}
+
+export function filterFixturesByTeamIds(fixtures, allowedTeamIds) {
+  if (!allowedTeamIds || !allowedTeamIds.size) return fixtures || [];
+  return (fixtures || []).filter(item => allowedTeamIds.has(Number(item?.teams?.home?.id)) || allowedTeamIds.has(Number(item?.teams?.away?.id)));
+}
+
+export function filterStandingsByTeamIds(standings, allowedTeamIds) {
+  if (!allowedTeamIds || !allowedTeamIds.size) return standings || [];
+  const rows = Array.isArray(standings?.[0]) ? standings.flat() : (standings || []);
+  return rows.filter(row => allowedTeamIds.has(Number(row?.team?.id)));
+}
