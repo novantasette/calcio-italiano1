@@ -1,4 +1,4 @@
-Calcio Italiano Live V8
+Calcio Italiano Live V9
 
 Sostituisci:
 - index.html
@@ -11,8 +11,18 @@ Sostituisci:
 Poi commit e redeploy su Vercel.
 
 Aggiunge live per:
-- Serie C Girone A = 138
-- Serie C Girone B = 942
-- Serie C Girone C = 943
-- Serie D Girone A = 426
-- Serie D Girone B = 427
+- Serie D Girone C = 428
+- Serie D Girone D = 429
+- Serie D Girone E = 430
+- Serie D Girone F = 431
+- Serie D Girone G = 432
+- Serie D Girone H = 433
+- Serie D Girone I = 434
+- Serie A Cup Women = 1198
+- Serie A Women = 139
+
+Aggiunge anche:
+- pagina Supporta il progetto
+- testo progetto
+- descrizione autore
+- pulsante PayPal
