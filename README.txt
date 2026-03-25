@@ -1,4 +1,4 @@
-Calcio Italiano Live V6
+Calcio Italiano Live V7
 
 Sostituisci:
 - index.html
@@ -11,7 +11,6 @@ Sostituisci:
 Poi commit e redeploy su Vercel.
 
 Migliorie:
-- classifica collegata
-- pagina squadra collegata
-- nomi squadre cliccabili
-- ultime/prossime partite squadra
+- tutte le partite in ordine decrescente
+- pagine squadra in ordine decrescente
+- struttura pronta per collegare altre categorie appena definisci i loro ID nel dashboard API-Football

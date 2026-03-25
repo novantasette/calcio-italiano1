@@ -27,11 +27,9 @@ export default async function handler(req, res) {
       fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&team=${teamId}&next=5`, key),
       fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&team=${teamId}&last=5`, key)
     ]);
-
     const rows = standingsData.response?.[0]?.league?.standings?.[0] || [];
     const standing = rows.find(r => String(r.team.id) === String(teamId)) || null;
     const team = standing?.team || nextData.response?.[0]?.teams?.home || lastData.response?.[0]?.teams?.home || { id: teamId, name: "Squadra" };
-
     const merged = [...(lastData.response || []), ...(nextData.response || [])];
     const uniq = [];
     const seen = new Set();
@@ -42,13 +40,8 @@ export default async function handler(req, res) {
         uniq.push(item);
       }
     }
-    uniq.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-
-    return res.status(200).json({
-      team,
-      standing,
-      fixtures: uniq
-    });
+    uniq.sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
+    return res.status(200).json({ team, standing, fixtures: uniq });
   } catch (e) {
     return res.status(500).json({ error: e.message || "Errore nel proxy team." });
   }

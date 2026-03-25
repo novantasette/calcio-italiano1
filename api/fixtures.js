@@ -28,7 +28,6 @@ export default async function handler(req, res) {
     const merged = [...(lastData.response || []), ...(nextData.response || [])];
     const uniq = [];
     const seen = new Set();
-
     for (const item of merged) {
       const id = item?.fixture?.id;
       if (id && !seen.has(id)) {
@@ -36,9 +35,7 @@ export default async function handler(req, res) {
         uniq.push(item);
       }
     }
-
-    uniq.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-
+    uniq.sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
     return res.status(200).json({
       fixtures: uniq,
       debug: {
