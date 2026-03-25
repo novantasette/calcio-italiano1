@@ -146,7 +146,7 @@
     .section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
     .match-month{margin:18px 0 10px;font-size:1.1rem;font-weight:800;letter-spacing:.02em;color:#f7fbff;text-transform:capitalize}
     .match-date{margin:10px 0 8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);font-size:.98rem;font-weight:800;color:#ffffff;text-transform:capitalize}
-    .top-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:18px;align-items:start}
+    .top-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:18px;align-items:start}
     .top-table{padding:0;overflow:hidden;border-radius:22px;border:1px solid var(--line);box-shadow:var(--shadow);min-width:0}
     .top-table.red{background:linear-gradient(180deg,rgba(134,21,21,.34),rgba(14,17,26,.98))}
     .top-table.white{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(16,19,26,.98))}
@@ -259,8 +259,8 @@ const CATEGORY_TREE = [
 const state = {
   page:'home', competition:'', filter:'all', search:'', fixtures:[], loading:false, error:'',
   selected:null, meta:null, standings:[], standingsLoading:false, selectedTeam:null, teamData:null, teamLoading:false,
-  openMacro:'serie-a', marketTab:'official', rankings:{ scorers:[], assists:[], ratings:[] },
-  rankingsLoading:{ scorers:false, assists:false, ratings:false }, rankingsNote:{ scorers:'', assists:'', ratings:'' },
+  openMacro:'serie-a', marketTab:'official', rankings:{ scorers:[], assists:[], ratings:[], values:[] },
+  rankingsLoading:{ scorers:false, assists:false, ratings:false, values:false }, rankingsNote:{ scorers:'', assists:'', ratings:'', values:'' },
   transfers:[], transfersLoading:false, transfersNote:'', teamDirectorySearch:'', teamTab:'overview', topTab:'scorers'
 };
 
@@ -593,15 +593,19 @@ function rankingCard(item, idx, type){
   return `<div class="ranking-row"><div class="ranking-rank">${idx+1}</div><div><strong>${esc(player.name || 'Giocatore')}</strong><div class="ranking-meta">${esc(team)} • Presenze: ${stats.games?.appearences ?? stats.games?.appearances ?? '—'}</div></div><div><strong>${esc(val)}${suffix}</strong></div></div>`;
 }
 
-function rankingValue(type, stats){
+function rankingValue(type, stats, item){
   if(type==='scorers') return stats.goals?.total ?? 0;
   if(type==='assists') return stats.goals?.assists ?? 0;
+  if(type==='values') return item.estimatedValueLabel || '—';
   const raw = Number.parseFloat(String(stats.games?.rating || '').replace(',', '.'));
   return Number.isFinite(raw) ? raw.toFixed(1).replace('.', ',') : '—';
 }
 
 function rankingLabel(type){
-  return type==='scorers' ? 'Gol' : type==='assists' ? 'Assist' : 'Valut.';
+  if(type==='scorers') return 'Gol';
+  if(type==='assists') return 'Assist';
+  if(type==='values') return 'Valore';
+  return 'Valut.';
 }
 
 function rankingView(type){
@@ -615,18 +619,18 @@ function rankingView(type){
     const player = item.player || {}; 
     const stats = item.statistics?.[0] || {}; 
     const team = stats.team?.name || 'Squadra'; 
-    const value = rankingValue(type, stats);
+    const value = rankingValue(type, stats, item);
     const appearances = stats.games?.appearences ?? stats.games?.appearances ?? '—';
     return `<tr><td>${idx+1}</td><td class="namecol"><div class="player-main"><div class="player-stack"><strong>${esc(player.name || 'Giocatore')}</strong><div class="player-team-line"><span>${esc(team)}</span><span class="sep">•</span><span>Presenze: ${esc(appearances)}</span></div></div></div></td><td><span class="value-pill">${esc(value)}</span></td></tr>`; 
   }).join('')}</tbody></table>${note?`<div class="footer-note">${esc(note)}</div>`:''}`;
 }
 
 function loadAllRankings(){
-  ['scorers','assists','ratings'].forEach(loadRanking);
+  ['scorers','assists','ratings','values'].forEach(loadRanking);
 }
 
 function topView(){
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Una sola pagina, più pulita e più forte visivamente: tre tabelle affiancate per <strong>Marcatori</strong>, <strong>Assist</strong> e <strong>Valutazioni</strong>, con valori ben visibili, squadra e presenze in una sola vista più ordinata e con colori ispirati al tricolore italiano.</p><div class="top-overview"><div class="top-table green"><div class="top-table-head"><em>Verde</em><h2 style="margin-bottom:6px">Marcatori</h2><div class="muted small">Gol realizzati nella competizione selezionata.</div></div>${rankingView('scorers')}</div><div class="top-table white"><div class="top-table-head"><em>Bianco</em><h2 style="margin-bottom:6px">Assist</h2><div class="muted small">Passaggi decisivi e rifinitura migliore.</div></div>${rankingView('assists')}</div><div class="top-table red"><div class="top-table-head"><em>Rosso</em><h2 style="margin-bottom:6px">Valutazioni</h2><div class="muted small">Media voto più alta disponibile nei dati, mostrata in modo più leggibile.</div></div>${rankingView('ratings')}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Vista</strong><div class="muted small">Top unificata più ampia</div></div><div class="row"><strong>Dettagli</strong><div class="muted small">Squadra, presenze e valori più leggibili</div></div></div></div></div></div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Una sola pagina, più pulita e più forte visivamente: quattro tabelle affiancate per <strong>Marcatori</strong>, <strong>Assist</strong>, <strong>Valutazioni</strong> e <strong>Valore stimato</strong>, con valori ben visibili, squadra e presenze in una sola vista più ordinata e con colori ispirati al tricolore italiano.</p><div class="top-overview"><div class="top-table green"><div class="top-table-head"><em>Verde</em><h2 style="margin-bottom:6px">Marcatori</h2><div class="muted small">Gol realizzati nella competizione selezionata.</div></div>${rankingView('scorers')}</div><div class="top-table white"><div class="top-table-head"><em>Bianco</em><h2 style="margin-bottom:6px">Assist</h2><div class="muted small">Passaggi decisivi e rifinitura migliore.</div></div>${rankingView('assists')}</div><div class="top-table red"><div class="top-table-head"><em>Rosso</em><h2 style="margin-bottom:6px">Valutazioni</h2><div class="muted small">Media voto più alta disponibile nei dati, mostrata in modo più leggibile.</div></div>${rankingView('ratings')}</div><div class="top-table green"><div class="top-table-head"><em>Stima</em><h2 style="margin-bottom:6px">Valore</h2><div class="muted small">Valore stimato automatico basato su età, rendimento, presenze e peso competitivo.</div></div>${rankingView('values')}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Vista</strong><div class="muted small">Top unificata più ampia</div></div><div class="row"><strong>Dettagli</strong><div class="muted small">Squadra, presenze, valori leggibili e nuova stima economica</div></div></div></div></div></div>`;
 }
 
 function marketView(){
@@ -728,7 +732,7 @@ async function loadRanking(type){
   if(state.rankingsLoading[type]) return;
   state.rankingsLoading[type]=true; render();
   try{
-    const endpoint = type==='ratings' ? '/api/ratings' : `/api/players?type=${type==='scorers'?'scorers':'assists'}`;
+    const endpoint = type==='ratings' ? '/api/ratings' : type==='values' ? '/api/values' : `/api/players?type=${type==='scorers'?'scorers':'assists'}`;
     const res = await fetch(`${endpoint}${endpoint.includes('?')?'&':'?'}competition=${encodeURIComponent(currentCode())}`);
     const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore caricamento classifica');
     state.rankings[type] = data.players || []; state.rankingsNote[type] = data.note || '';
