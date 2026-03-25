@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       players,
       note: EURO_COMP_CODES.has(comp)
         ? 'Classifica limitata ai giocatori delle squadre italiane presenti nella competizione europea.'
-        : 'Classifica calcolata sulle prime pagine disponibili dell'endpoint giocatori della competizione.'
+        : 'Classifica calcolata sulle prime pagine disponibili dell’endpoint giocatori della competizione.'
     });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore nel proxy ratings.' });

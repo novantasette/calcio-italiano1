@@ -35,9 +35,11 @@ const allTransfers = transferLists
   })
   .sort((a, b) => new Date(b.update?.date || 0) - new Date(a.update?.date || 0));
 
-const recentCutoff = new Date();
-recentCutoff.setFullYear(recentCutoff.getFullYear() - 1);
-let transfers = allTransfers.filter(item => new Date(item.update?.date || 0) >= recentCutoff);
+const seasonWindowStart = new Date(`${Number(cfg.season) - 1}-06-01T00:00:00Z`);
+let transfers = allTransfers.filter(item => {
+  const when = new Date(item.update?.date || 0);
+  return when >= seasonWindowStart;
+});
 transfers = transfers.slice(0, 18);
 
     return res.status(200).json({
