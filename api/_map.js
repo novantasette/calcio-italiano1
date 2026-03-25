@@ -37,21 +37,12 @@ export const COMP_MAP = {
   "world-cup-qualifiers-europe": { league: 32, season: 2024, label: "Qualificazioni Mondiali" }
 };
 
-
 export async function fetchJson(url, key) {
   const r = await fetch(url, { headers: { "x-apisports-key": key } });
-  const raw = await r.text();
-  let data = {};
-  try {
-    data = raw ? JSON.parse(raw) : {};
-  } catch (err) {
-    if (!r.ok) throw new Error(raw || 'Errore API esterna');
-    throw new Error('Risposta non valida dall'API esterna');
-  }
-  if (!r.ok) throw new Error(data?.message || raw || "Errore API esterna");
+  const data = await r.json();
+  if (!r.ok) throw new Error(data?.message || "Errore API esterna");
   return data;
 }
-
 
 export function getCfg(comp) {
   return COMP_MAP[comp];

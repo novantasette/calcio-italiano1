@@ -261,8 +261,7 @@ const state = {
   selected:null, meta:null, standings:[], standingsMeta:null, standingsLoading:false, selectedTeam:null, teamData:null, teamLoading:false,
   openMacro:'serie-a', marketTab:'official', rankings:{ scorers:[], assists:[], ratings:[] },
   rankingsLoading:{ scorers:false, assists:false, ratings:false }, rankingsNote:{ scorers:'', assists:'', ratings:'' },
-  values:[], valuesLoading:false, valuesNote:'',
-  transfers:[], transfersLoading:false, transfersNote:'', teamDirectorySearch:'', teamTab:'overview', topTab:'scorers',
+  transfers:[], transfersLoading:false, transfersNote:'', values:[], valuesLoading:false, valuesNote:'', teamDirectorySearch:'', teamTab:'overview', topTab:'scorers',
   _historyLock:false
 };
 
@@ -662,16 +661,15 @@ function topView(){
   return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Una sola pagina, più pulita e più forte visivamente: tre tabelle affiancate per <strong>Marcatori</strong>, <strong>Assist</strong> e <strong>Valutazioni</strong>, con valori ben visibili, squadra e presenze in una sola vista più ordinata e con colori ispirati al tricolore italiano.</p><div class="top-overview"><div class="top-table green"><div class="top-table-head"><em>Verde</em><h2 style="margin-bottom:6px">Marcatori</h2><div class="muted small">Gol realizzati nella competizione selezionata.</div></div>${rankingView('scorers')}</div><div class="top-table white"><div class="top-table-head"><em>Bianco</em><h2 style="margin-bottom:6px">Assist</h2><div class="muted small">Passaggi decisivi e rifinitura migliore.</div></div>${rankingView('assists')}</div><div class="top-table red"><div class="top-table-head"><em>Rosso</em><h2 style="margin-bottom:6px">Valutazioni</h2><div class="muted small">Media voto più alta disponibile nei dati.</div></div>${rankingView('ratings')}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Vista</strong><div class="muted small">Top unificata più ampia</div></div><div class="row"><strong>Dettagli</strong><div class="muted small">Squadra, presenze e valori più leggibili</div></div></div></div></div></div>`;
 }
 
-function formatValueEuro(v){
-  const n = Number(v || 0);
-  if(!Number.isFinite(n) || n <= 0) return '—';
+function formatValueEuro(value){
+  const n = Number(value || 0);
+  if(!Number.isFinite(n) || n<=0) return '—';
   if(n >= 1000000) return `€${(n/1000000).toFixed(1).replace('.', ',')} M`;
   if(n >= 1000) return `€${Math.round(n/1000)} mila`;
   return `€${Math.round(n)}`;
 }
 
 function valueView(){
-  loadValues();
   const rows = state.values.map((item, idx) => {
     const player = item.player || {};
     const stats = item.statistics?.[0] || {};
@@ -679,14 +677,14 @@ function valueView(){
     const appearances = stats.games?.appearences ?? stats.games?.appearances ?? '—';
     return `<tr><td>${idx+1}</td><td class="namecol"><div class="player-main"><div class="player-stack"><strong>${esc(player.name || 'Giocatore')}</strong><div class="player-team-line"><span>${esc(team)}</span><span class="sep">•</span><span>Presenze: ${esc(appearances)}</span></div></div></div></td><td><span class="value-pill">${esc(formatValueEuro(item.estimatedValue))}</span></td></tr>`;
   }).join('');
-  const body = !currentCode()
-    ? `<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`
+  const body = !state.competition
+    ? `<div class="directory-meta">Seleziona prima una competizione dal menu laterale.</div>`
     : state.valuesLoading
-      ? `<div class="notice">Caricamento valori stimati...</div>`
+      ? `<div class="directory-meta">Caricamento valori stimati...</div>`
       : !state.values.length
-        ? `<div class="notice">Nessun valore stimato disponibile per questa competizione.</div>`
-        : `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>Valore</th></tr></thead><tbody>${rows}</tbody></table>`;
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Valore</h1><p>Una pagina dedicata alla stima economica automatica dei giocatori della competizione selezionata, basata su età, presenze, rendimento, gol, assist e peso competitivo.</p><div class="top-overview"><div class="top-table green"><div class="top-table-head"><em>Stima</em><h2 style="margin-bottom:6px">Valori stimati</h2><div class="muted small">Una lettura rapida e comprensibile, senza dipendere da fonti esterne non ufficiali.</div></div>${body}${state.valuesNote ? `<div class="footer-note">${esc(state.valuesNote)}</div>` : ''}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Metodo</strong><div class="muted small">Stima automatica interna</div></div><div class="row"><strong>Output</strong><div class="muted small">Valori economici leggibili</div></div></div></div></div></div>`;
+        ? `<div class="directory-meta">Nessun valore disponibile.</div>${state.valuesNote?`<div class="footer-note">${esc(state.valuesNote)}</div>`:''}`
+        : `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>Valore</th></tr></thead><tbody>${rows}</tbody></table>${state.valuesNote?`<div class="footer-note">${esc(state.valuesNote)}</div>`:''}`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Valore</h1><p>Una pagina dedicata alla stima economica automatica dei giocatori della competizione selezionata, basata su età, presenze, rendimento, gol, assist e peso competitivo.</p><div class="top-overview"><div class="top-table green"><div class="top-table-head"><em>Stima</em><h2 style="margin-bottom:6px">Valori stimati</h2><div class="muted small">Una lettura rapida e comprensibile, senza dipendere da fonti esterne non ufficiali.</div></div>${body}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Metodo</strong><div class="muted small">Stima automatica interna</div></div><div class="row"><strong>Output</strong><div class="muted small">Valori economici leggibili</div></div></div></div></div></div>`;
 }
 
 function marketView(){
@@ -728,8 +726,8 @@ function setPage(page){
   if(page==='home'){ resetToHome(); render(); syncHistory(); return; }
   state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render(); syncHistory();
   if(page==='top') loadAllRankings();
-  if(page==='market') loadTransfers();
   if(page==='value') loadValues();
+  if(page==='market') loadTransfers();
 }
 function goCompetition(){
   if(!state.competition) return;
@@ -760,26 +758,33 @@ async function openNationalTeam(teamId, teamName){
   state.teamLoading=false; render(); syncHistory(true);
 }
 
+async function fetchJsonSafe(url, defaultError){
+  const res = await fetch(url);
+  const raw = await res.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch(_) { throw new Error(defaultError); }
+  if(!res.ok) throw new Error(data.error || defaultError);
+  return data;
+}
+
 async function loadFixturesOnly(){
   if(currentMode()==='team' || currentMode()==='national-competition'){
     const teamId = currentItem()?.teamId;
     if(!teamId){ state.fixtures=[]; state.meta=null; return; }
     const compParam = currentMode()==='national-competition' ? `&competition=${encodeURIComponent(currentCode())}` : '';
-    const res = await fetch(`/api/national-fixtures?team=${teamId}${compParam}`);
-    const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel caricamento');
+    const data = await fetchJsonSafe(`/api/national-fixtures?team=${teamId}${compParam}`, 'Partite momentaneamente non disponibili.');
     state.fixtures = data.fixtures || []; state.meta = data.debug || null;
     return;
   }
   if(!currentCode()) { state.fixtures=[]; state.meta=null; return; }
-  const res = await fetch(`/api/fixtures?competition=${encodeURIComponent(currentCode())}`);
-  const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel caricamento');
+  const data = await fetchJsonSafe(`/api/fixtures?competition=${encodeURIComponent(currentCode())}`, 'Partite momentaneamente non disponibili.');
   state.fixtures = data.fixtures || []; state.meta = data.debug || null;
 }
 async function loadStandings(){
   if(currentMode()==='team' || currentMode()==='national-competition'){ state.standings=[]; state.standingsMeta=null; state.standingsLoading=false; render(); return; }
   if(!currentCode()) { state.standings=[]; state.standingsMeta=null; state.standingsLoading=false; render(); return; }
   state.standingsLoading=true; render();
-  try{ const res = await fetch(`/api/standings?competition=${encodeURIComponent(currentCode())}`); const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore classifica'); state.standings = data.standings || []; state.standingsMeta = data.debug || null; }
+  try{ const data = await fetchJsonSafe(`/api/standings?competition=${encodeURIComponent(currentCode())}`, 'Classifica momentaneamente non disponibile.'); state.standings = data.standings || []; state.standingsMeta = data.debug || null; }
   catch(err){ state.standings=[]; state.standingsMeta=null; }
   state.standingsLoading=false; render();
 }
@@ -789,18 +794,13 @@ async function loadCompetitionData(){
   catch(err){ state.fixtures=[]; state.meta=null; state.error=err.message || 'Errore nel caricamento'; }
   state.loading=false; render(); loadStandings();
 }
-
 async function loadRanking(type){
   if(!currentCode()) { state.rankings[type]=[]; state.rankingsNote[type]='Seleziona una competizione per caricare la classifica.'; render(); return; }
   if(state.rankingsLoading[type]) return;
   state.rankingsLoading[type]=true; render();
   try{
     const endpoint = type==='ratings' ? '/api/ratings' : `/api/players?type=${type==='scorers'?'scorers':'assists'}`;
-    const res = await fetch(`${endpoint}${endpoint.includes('?')?'&':'?'}competition=${encodeURIComponent(currentCode())}`);
-    const raw = await res.text();
-    let data = {};
-    try { data = raw ? JSON.parse(raw) : {}; } catch(parseErr) { throw new Error(type==='ratings' ? 'Valutazioni momentaneamente non disponibili.' : 'Classifica momentaneamente non disponibile.'); }
-    if(!res.ok) throw new Error(data.error || 'Errore caricamento classifica');
+    const data = await fetchJsonSafe(`${endpoint}${endpoint.includes('?')?'&':'?'}competition=${encodeURIComponent(currentCode())}`, type==='ratings' ? 'Valutazioni momentaneamente non disponibili.' : 'Classifica momentaneamente non disponibile.');
     state.rankings[type] = data.players || []; state.rankingsNote[type] = data.note || '';
   }catch(err){ state.rankings[type] = []; state.rankingsNote[type] = err.message || 'Errore nel caricamento'; }
   state.rankingsLoading[type]=false; render();
@@ -808,23 +808,17 @@ async function loadRanking(type){
 async function loadValues(){
   if(!currentCode()) { state.values=[]; state.valuesNote='Seleziona prima una competizione dal menu laterale.'; render(); return; }
   if(state.valuesLoading) return;
-  state.valuesLoading = true; render();
-  try{
-    const res = await fetch(`/api/value?competition=${encodeURIComponent(currentCode())}`);
-    const raw = await res.text();
-    let data = {};
-    try { data = raw ? JSON.parse(raw) : {}; } catch(parseErr) { throw new Error('Valori stimati momentaneamente non disponibili.'); }
-    if(!res.ok) throw new Error(data.error || 'Errore caricamento valori');
-    state.values = data.players || [];
-    state.valuesNote = data.note || '';
-  }catch(err){ state.values = []; state.valuesNote = err.message || 'Errore nel caricamento'; }
-  state.valuesLoading = false; render();
+  state.valuesLoading=true; render();
+  try{ const data = await fetchJsonSafe(`/api/value?competition=${encodeURIComponent(currentCode())}`, 'Valori stimati momentaneamente non disponibili.'); state.values = data.players || []; state.valuesNote = data.note || ''; }
+  catch(err){ state.values=[]; state.valuesNote = err.message || 'Errore nel caricamento'; }
+  state.valuesLoading=false; render();
 }
+
 async function loadTransfers(){
-  if(!currentCode()) { state.transfers=[]; state.transfersNote='Seleziona una competizione per caricare il mercato ufficiale.'; render(); return; }
+  if(!currentCode()) { state.transfers=[]; state.transfersNote='Seleziona prima una competizione per caricare il mercato ufficiale.'; render(); return; }
   if(state.transfersLoading) return;
   state.transfersLoading=true; render();
-  try{ const res = await fetch(`/api/transfers?competition=${encodeURIComponent(currentCode())}`); const data = await res.json(); if(!res.ok) throw new Error(data.error || 'Errore caricamento mercato'); state.transfers = data.transfers || []; state.transfersNote = data.note || ''; }
+  try{ const data = await fetchJsonSafe(`/api/transfers?competition=${encodeURIComponent(currentCode())}`, 'Mercato momentaneamente non disponibile.'); state.transfers = data.transfers || []; state.transfersNote = data.note || ''; }
   catch(err){ state.transfers = []; state.transfersNote = err.message || 'Errore nel caricamento'; }
   state.transfersLoading=false; render();
 }
