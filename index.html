@@ -96,8 +96,26 @@
     .empty-shell{display:grid;gap:16px}
     .select-note{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:.92rem;color:#dce7f6}
     .section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+    .match-month{margin:18px 0 10px;font-size:1.1rem;font-weight:800;letter-spacing:.02em;color:#f7fbff;text-transform:capitalize}
+    .match-date{margin:10px 0 8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);font-size:.98rem;font-weight:800;color:#ffffff;text-transform:capitalize}
+    .top-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+    .top-table{padding:0;overflow:hidden;border-radius:22px;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .top-table.red{background:linear-gradient(180deg,rgba(134,21,21,.34),rgba(14,17,26,.98))}
+    .top-table.white{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(16,19,26,.98))}
+    .top-table.green{background:linear-gradient(180deg,rgba(13,113,63,.34),rgba(10,18,26,.98))}
+    .top-table-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .top-table-head em{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.12);font-style:normal;font-size:.8rem;font-weight:700;margin-bottom:8px}
+    .top-mini-table{width:100%;border-collapse:collapse}
+    .top-mini-table th,.top-mini-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .top-mini-table th{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:#deebfb}
+    .top-mini-table tbody tr:last-child td{border-bottom:0}
+    .top-mini-table td:first-child{width:54px;font-weight:800}
+    .top-mini-table td:last-child{text-align:right;font-weight:800}
+    .top-mini-table .namecol{font-weight:700}
+    .home-highlight{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+    .home-highlight .feature{min-height:110px}
 
-    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split,.macro-grid,.quick-grid,.hero-home{grid-template-columns:1fr}}
+    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split,.macro-grid,.quick-grid,.hero-home,.top-overview,.home-highlight{grid-template-columns:1fr}}
     @media (max-width:820px){.topbar{padding:14px}.content{padding:18px}.topnav{justify-content:flex-start}.search{min-width:100%}h1{font-size:2rem}}
   </style>
 </head>
@@ -157,7 +175,11 @@ const getComp = () => allItems.find(c => c.name === state.competition);
 const currentCode = () => getComp()?.code || '';
 const currentMacro = () => CATEGORY_TREE.find(group => group.items.some(item => item.name === state.competition))?.label || 'Seleziona una categoria';
 const localDate = d => new Date(d).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
+const localDateLong = d => new Date(d).toLocaleDateString('it-IT',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+const monthKey = d => { const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`; };
+const monthLabel = d => new Date(d).toLocaleDateString('it-IT',{month:'long', year:'numeric'});
 const sortByDateDesc = list => [...list].sort((a,b)=>new Date(b.fixture.date)-new Date(a.fixture.date));
+const sortByDateAsc = list => [...list].sort((a,b)=>new Date(a.fixture.date)-new Date(b.fixture.date));
 function statusClass(short){ if(['1H','2H','HT','ET','BT','P','LIVE','INT'].includes(short)) return 'live'; if(['FT','AET','PEN'].includes(short)) return 'finished'; return 'scheduled'; }
 function statusLabel(m){ const s=m.fixture.status.short, e=m.fixture.status.elapsed; if(['1H','2H'].includes(s)) return `<span class="live-dot"></span>Partita in corso ${s==='1H'?'1T':'2T'}${e?' • '+e+"'":''}`; if(s==='HT') return '<span class="live-dot"></span>Intervallo'; if(['ET','BT','P','LIVE','INT'].includes(s)) return '<span class="live-dot"></span>Partita in corso'; if(['FT','AET','PEN'].includes(s)) return 'Partita finita'; return 'Non iniziata'; }
 function iconForEvent(type,detail){ const t=`${type||''} ${detail||''}`.toLowerCase(); if(t.includes('goal')) return '⚽'; if(t.includes('card')) return detail==='Red Card'?'🟥':'🟨'; if(t.includes('subst')) return '🔁'; if(t.includes('var')) return '🖥️'; if(t.includes('penalty')) return '🎯'; return '•'; }
@@ -187,6 +209,24 @@ const EVENT_DETAIL_LABELS = {
   'Penalty Shootout':'Rigori','Card Upgrade':'Cartellino modificato','Substitution 1':'Sostituzione','Substitution 2':'Sostituzione',
   'Injury':'Infortunio','Tactical Substitution':'Sostituzione tattica','Foul':'Fallo','Handball':'Fallo di mano'
 };
+const GENERIC_TRANSLATIONS = {
+  'Starting XI':'Formazione titolare','Substitutes':'Panchina','Coach':'Allenatore','Home Team':'Squadra di casa','Away Team':'Squadra ospite',
+  'Match Winner':'Vincitore partita','No Goals':'Nessun gol','Both Teams Score':'Gol di entrambe le squadre','Aggiornamento':'Aggiornamento',
+  'Transfer':'Trasferimento','Loan':'Prestito','Free':'Svincolato','N/A':'n.d.'
+};
+function tLabel(value){
+  const raw = String(value ?? '').trim();
+  if(!raw) return '';
+  return STAT_LABELS[raw] || EVENT_TYPE_LABELS[raw] || EVENT_DETAIL_LABELS[raw] || GENERIC_TRANSLATIONS[raw]
+    || raw.replace(/Substitutions?/gi,'Sostituzioni')
+          .replace(/Substitution/gi,'Sostituzione')
+          .replace(/Yellow Cards?/gi,'Cartellini gialli')
+          .replace(/Red Cards?/gi,'Cartellini rossi')
+          .replace(/Injury/gi,'Infortunio')
+          .replace(/Goal Disallowed/gi,'Gol annullato')
+          .replace(/Own Goal/gi,'Autogol')
+          .replace(/Missed Penalty/gi,'Rigore sbagliato');
+}
 
 function renderStat(stats,name,labelOverride){
   const home = stats[0]?.statistics?.find(s=>s.type===name)?.value ?? 0;
@@ -221,37 +261,65 @@ function toolbar(){
 }
 
 function homeHero(){
-  const selected = state.competition ? `<div class="feature"><span>Competizione selezionata</span><strong>${esc(state.competition)}</strong></div>` : `<div class="feature"><span>Competizione selezionata</span><strong>Nessuna ancora scelta</strong></div>`;
-  return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano Live</div><h1>Segui il calcio italiano con una home davvero ordinata.</h1><p>La Home ora resta sempre una vera pagina iniziale: pulita, elegante e senza classifiche o partite mostrate in automatico. Sei tu a scegliere quando entrare in una competizione, aprire una squadra oppure consultare le classifiche Top.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Navigazione più chiara</span><span class="pill">Competizioni italiane</span><span class="pill">News ufficiali squadra</span></div><div class="hero-cta"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Apri Top</button><button onclick="setPage('market')">Apri Mercato</button>${state.competition?`<button onclick="goCompetition()">Vai a ${esc(state.competition)}</button>`:''}</div></div><div class="card hero-side"><h2>Accesso rapido</h2><div class="hero-list">${selected}<div class="feature"><span>Come iniziare</span><strong>Apri una macro-categoria a sinistra</strong></div><div class="feature"><span>Esperienza</span><strong>Home separata dal contenuto live</strong></div><div class="feature"><span>Struttura</span><strong>Squadre, Top, Mercato e Supporto</strong></div></div></div></div>`;
+  const selected = state.competition ? `<div class="feature"><span>Ultima competizione aperta</span><strong>${esc(state.competition)}</strong></div>` : `<div class="feature"><span>Ultima competizione aperta</span><strong>Nessuna ancora scelta</strong></div>`;
+  return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano Live</div><h1>Una Home pulita, elegante e pronta a guidare davvero la navigazione.</h1><p>Quando entri nel sito resti sempre sulla Home iniziale, senza classifiche o partite caricate automaticamente. Da qui puoi scegliere con calma una competizione, aprire la sezione Squadre, consultare la pagina Top o il Mercato.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Navigazione più chiara</span><span class="pill">Date ben visibili</span><span class="pill">Statistiche tradotte</span></div><div class="hero-cta"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Apri Top</button><button onclick="setPage('market')">Apri Mercato</button></div><div class="home-highlight"><div class="feature"><div><strong>Competizioni</strong><div class="muted small">Apri una macro-categoria a sinistra e scegli il campionato che vuoi seguire.</div></div></div><div class="feature"><div><strong>Top unificata</strong><div class="muted small">Marcatori, assist e valutazioni nella stessa pagina, più ordinati e immediati.</div></div></div><div class="feature"><div><strong>Vista partite</strong><div class="muted small">Live e prossime più pulite, con date in evidenza e partite finite separate.</div></div></div></div></div><div class="card hero-side"><h2>Accesso rapido</h2><div class="hero-list">${selected}<div class="feature"><span>Come iniziare</span><strong>Scegli una competizione dal menu laterale</strong></div><div class="feature"><span>Esperienza</span><strong>Home sempre separata dai contenuti live</strong></div><div class="feature"><span>Struttura</span><strong>Squadre, Top, Mercato e Supporto</strong></div></div></div></div>`;
 }
 
 function homeLanding(){
-  return `<div class="empty-shell"><div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Scegli una competizione</h2><div class="muted small">Apri una macro-categoria dal menu laterale oppure usa i pulsanti rapidi qui sotto.</div></div><div class="muted small">La Home non carica dati finché non entri in una competizione.</div></div><div class="macro-grid">${CATEGORY_TREE.map(group=>`<div class="macro-tile"><strong>${group.label}</strong><div class="directory-meta">${group.items.filter(i=>!i.disabled).length} sottocategorie disponibili</div><div class="macro-actions">${group.items.map(item=>item.disabled?`<button disabled style="opacity:.55;cursor:not-allowed">${item.name}</button>`:`<button onclick="selectCompetition('${item.name}')">${item.name}</button>`).join('')}</div></div>`).join('')}</div></div><div class="home-grid"><div class="card home-card"><em>Home</em><strong>Ingresso ordinato</strong><div class="directory-meta">Niente contenuti automatici all'apertura: la navigazione parte da una base pulita.</div></div><div class="card home-card"><em>Squadre</em><strong>Ricerca veloce</strong><div class="directory-meta">Apri una squadra e consulta rosa, infortuni, cartellini, formazioni e notizie ufficiali.</div></div><div class="card home-card"><em>Top</em><strong>Un solo menu, tre classifiche</strong><div class="directory-meta">Marcatori, assist e valutazioni raccolti in un'interfaccia più bella e coerente.</div></div></div></div>`;
+  return `<div class="empty-shell"><div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Scegli una competizione</h2><div class="muted small">Apri una macro-categoria dal menu laterale oppure usa i pulsanti rapidi qui sotto.</div></div><div class="muted small">La Home resta sempre pulita finché non entri davvero in una competizione.</div></div><div class="macro-grid">${CATEGORY_TREE.map(group=>`<div class="macro-tile"><strong>${group.label}</strong><div class="directory-meta">${group.items.filter(i=>!i.disabled).length} sottocategorie disponibili</div><div class="macro-actions">${group.items.map(item=>item.disabled?`<button disabled style="opacity:.55;cursor:not-allowed">${item.name}</button>`:`<button onclick="selectCompetition('${item.name}')">${item.name}</button>`).join('')}</div></div>`).join('')}</div></div><div class="home-grid"><div class="card home-card"><em>Home</em><strong>Ingresso ordinato</strong><div class="directory-meta">Niente contenuti automatici all'apertura: scegli tu quando visualizzare partite e classifiche.</div></div><div class="card home-card"><em>Squadre</em><strong>Ricerca veloce</strong><div class="directory-meta">Apri una squadra e consulta rosa, infortuni, cartellini, formazioni e notizie ufficiali.</div></div><div class="card home-card"><em>Top</em><strong>Una sola pagina</strong><div class="directory-meta">Marcatori, assist e valutazioni raccolti in tre tabelle affiancate più belle da leggere.</div></div></div></div>`;
 }
 
 function competitionView(){
   return `<div class="content">${state.competition ? `<div class="hero"><div class="card hero-main"><div class="muted small">${esc(currentMacro())} • ${esc(state.competition)}</div><h1>${esc(state.competition)}</h1><p>Vista principale della competizione con partite, classifica, schede squadra e statistiche tradotte in italiano. Puoi cambiare categoria dal menu laterale in qualsiasi momento oppure tornare alla Home pulita dal menu alto.</p><div class="pills"><span class="pill">Live</span><span class="pill">Classifica</span><span class="pill">Dettagli partita</span><span class="pill">Schede squadra</span></div></div><div class="card hero-side"><h2>Stato rapido</h2><div class="kpi"><div class="row"><strong>Competizione attiva</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Partite caricate</strong><div class="muted small">${state.fixtures.length || '—'}</div></div><div class="row"><strong>Ordine</strong><div class="muted small">Più recenti in alto</div></div></div></div></div><div class="grid grid2">${matchesList()}${standingsCard()}</div>` : homeLanding()}</div>`;
 }
 
-function homeView(){ return `<div class="content">${homeHero()}${homeLanding()}</div>`; }
+
+function renderMatchesGrouped(list){
+  const months = new Map();
+  list.forEach(m => {
+    const mk = monthKey(m.fixture.date);
+    if(!months.has(mk)) months.set(mk, { label: monthLabel(m.fixture.date), days:new Map() });
+    const month = months.get(mk);
+    const dk = new Date(m.fixture.date).toISOString().slice(0,10);
+    if(!month.days.has(dk)) month.days.set(dk, { label: localDateLong(m.fixture.date), items:[] });
+    month.days.get(dk).items.push(m);
+  });
+  return [...months.entries()].map(([_, month]) => `<div><div class="match-month">${esc(month.label)}</div>${[...month.days.entries()].map(([__, day]) => `<div class="match-date">${esc(day.label)}</div><div class="list">${day.items.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`).join('')}</div>`).join('');
+}
 
 function matchesList(){
-  let list = sortByDateDesc(state.fixtures || []);
-  if(state.filter==='live') list=list.filter(m=>statusClass(m.fixture.status.short)==='live');
-  if(state.filter==='next') list=list.filter(m=>statusClass(m.fixture.status.short)==='scheduled');
-  if(state.filter==='finished') list=list.filter(m=>statusClass(m.fixture.status.short)==='finished');
+  const allFixtures = state.fixtures || [];
+  const liveList = sortByDateDesc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='live'));
+  const nextListFull = sortByDateAsc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='scheduled'));
+  const nextList = nextListFull.slice(0,10);
+  const finishedList = sortByDateDesc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='finished'));
+
+  let list = [];
+  let note = 'Live in evidenza + massimo 10 prossime partite. Le partite finite restano separate nella tab Finite.';
+  if(state.filter==='live'){ list = liveList; note = 'Solo partite live.'; }
+  else if(state.filter==='next'){ list = nextList; note = 'Mostrate solo le prossime 10 partite, ordinate dalla più vicina.'; }
+  else if(state.filter==='finished'){ list = finishedList; note = 'Partite finite, separate per mantenere la vista più pulita.'; }
+  else { list = [...liveList, ...nextList]; }
+
   if(state.search.trim()){
     const q=state.search.toLowerCase();
     list=list.filter(m=>m.teams.home.name.toLowerCase().includes(q)||m.teams.away.name.toLowerCase().includes(q));
   }
-  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Partite</h2><div class="muted small">Ordinamento decrescente per data</div></div>${toolbar()}${state.loading?`<div class="notice">Caricamento partite...</div>`:state.error?`<div class="notice">${esc(state.error)}</div>`:!list.length?`<div class="notice">Nessuna partita trovata per i filtri selezionati.</div>`:`<div class="list">${list.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`}</div>`;
+
+  const body = !list.length
+    ? `<div class="notice">Nessuna partita trovata per i filtri selezionati.</div>`
+    : (state.filter==='finished' || state.filter==='live') 
+      ? `<div class="list">${list.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small"><strong>${localDateLong(m.fixture.date)}</strong> • ${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`
+      : renderMatchesGrouped(list);
+
+  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Partite</h2><div class="muted small">${esc(note)}</div></div>${toolbar()}${state.loading?`<div class="notice">Caricamento partite...</div>`:state.error?`<div class="notice">${esc(state.error)}</div>`:body}</div>`;
 }
 
 function standingsCard(){
   return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Classifica</h2><div class="muted small">${esc(state.competition)}</div></div>${state.standingsLoading?`<div class="notice">Caricamento classifica...</div>`:!state.standings.length?`<div class="notice">Classifica non disponibile per questa categoria.</div>`:`<table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>N</th><th>P</th><th>DR</th></tr></thead><tbody>${state.standings.map(r=>`<tr><td>${r.rank}</td><td>${teamLink(r.team.name,r.team.id)}</td><td>${r.points}</td><td>${r.all.played}</td><td>${r.all.win}</td><td>${r.all.draw}</td><td>${r.all.lose}</td><td>${r.goalsDiff}</td></tr>`).join('')}</tbody></table>`}</div>`;
 }
 
-function homeView(){ return `<div class="content">${homeHero()}${!state.competition ? homeLanding() : `<div class="grid grid2">${matchesList()}${standingsCard()}</div>`}</div>`; }
+function homeView(){ return `<div class="content">${homeHero()}${homeLanding()}</div>`; }
 
 function detailView(){
   if(!state.selected) return '';
@@ -262,7 +330,7 @@ function detailView(){
   const interestingStats=['Shots on Goal','Shots off Goal','Total Shots','Blocked Shots','Shots insidebox','Shots outsidebox','Ball Possession','Corner Kicks','Offsides','Fouls','Yellow Cards','Red Cards','Goalkeeper Saves','Total passes','Passes accurate','Passes %','expected_goals','Goals Prevented'];
   const statsHtml = `<div class="card section"><h2>Statistiche</h2>${stats.length>=2?interestingStats.map(s=>renderStat(stats,s)).join(''):`<div class="muted small">Statistiche non disponibili.</div>`}</div>`;
   const lineupsHtml = `<div class="card section"><h2>Formazioni</h2>${lineups.length?`<div class="split">${lineups.map(lineupCard).join('')}</div>`:`<div class="muted small">Formazioni non disponibili.</div>`}</div>`;
-  return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="grid grid2"><div><div class="card section"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${teamLink(m.teams.home.name,m.teams.home.id)} vs ${teamLink(m.teams.away.name,m.teams.away.id)}</div><div class="muted small">${esc(m.fixture.venue?.name||'Stadio non disponibile')}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div><div class="card section"><h2>Eventi</h2>${events.length?events.map(e=>`<div class="event"><div class="rowflex"><strong>${e.time.elapsed?e.time.elapsed+"'":'-'} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div><div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div><div class="muted small">${EVENT_DETAIL_LABELS[e.detail] || EVENT_TYPE_LABELS[e.type] || STAT_LABELS[e.type] || esc(e.type||'')}${e.detail && !EVENT_DETAIL_LABELS[e.detail] ? ' • '+esc(e.detail):''}</div></div>`).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
+  return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="grid grid2"><div><div class="card section"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${teamLink(m.teams.home.name,m.teams.home.id)} vs ${teamLink(m.teams.away.name,m.teams.away.id)}</div><div class="muted small">${esc(m.fixture.venue?.name||'Stadio non disponibile')}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div><div class="card section"><h2>Eventi</h2>${events.length?events.map(e=>`<div class="event"><div class="rowflex"><strong>${e.time.elapsed?e.time.elapsed+"'":'-'} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div><div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div><div class="muted small">${esc(tLabel(e.detail) || tLabel(e.type) || e.type || '')}${e.detail && !EVENT_DETAIL_LABELS[e.detail] ? ' • '+esc(tLabel(e.detail)):''}</div></div>`).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
 }
 
 function teamTabOverview(d){
@@ -275,7 +343,7 @@ function teamTabSquad(d){
 }
 function teamTabInjuries(d){
   const injuries = d.injuries || [];
-  return `<div class="card section tab-shell"><h2>Infortuni / indisponibilità</h2>${injuries.length?`<div class="list">${injuries.map(i=>`<div class="news-card"><strong>${esc(i.player?.name || 'Giocatore')}</strong><div class="directory-meta">${esc(i.player?.type || 'Indisponibilità')} • ${esc(i.player?.reason || 'Motivo non indicato')}</div><div class="directory-meta">Data: ${i.fixture?.date ? localDate(i.fixture.date) : 'n.d.'}</div></div>`).join('')}</div>`:`<div class="notice">Nessun infortunio segnalato nei dati disponibili.</div>`}</div>`;
+  return `<div class="card section tab-shell"><h2>Infortuni / indisponibilità</h2>${injuries.length?`<div class="list">${injuries.map(i=>`<div class="news-card"><strong>${esc(i.player?.name || 'Giocatore')}</strong><div class="directory-meta">${esc(tLabel(i.player?.type || 'Indisponibilità'))} • ${esc(tLabel(i.player?.reason || 'Motivo non indicato'))}</div><div class="directory-meta">Data: ${i.fixture?.date ? localDate(i.fixture.date) : 'n.d.'}</div></div>`).join('')}</div>`:`<div class="notice">Nessun infortunio segnalato nei dati disponibili.</div>`}</div>`;
 }
 function teamTabCards(d){
   const cards = d.cards || {};
@@ -290,7 +358,7 @@ function teamTabNews(d){
   const officialNote = d.officialNews?.note || '';
   const sourceLabel = d.officialNews?.source?.siteName || 'fonte ufficiale';
   const news = d.teamNews || [];
-  return `<div class="tab-shell" style="display:grid;gap:14px"><div class="card section"><h2>News ufficiali squadra</h2>${official.length?`<div class="list">${official.map(item=>`<div class="news-card"><strong><a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title || 'News ufficiale')}</a></strong><div class="directory-meta">Fonte: ${esc(item.source || sourceLabel)}</div><div class="directory-meta">${item.publishedAt ? 'Pubblicata: '+localDate(item.publishedAt) : 'Data non disponibile'}</div>${item.description?`<div class="directory-meta" style="margin-top:8px">${esc(item.description)}</div>`:''}</div>`).join('')}</div>`:`<div class="notice">Nessuna news ufficiale disponibile al momento per questa squadra.</div>`}${officialNote?`<div class="footer-note">${esc(officialNote)}</div>`:''}</div><div class="card section"><h2>Movimenti ufficiali squadra</h2>${news.length?`<div class="list">${news.map(n=>`<div class="news-card"><strong>${esc(n.player?.name || 'Giocatore')}</strong><div class="directory-meta">${esc(n.teams?.out?.name || '—')} → ${esc(n.teams?.in?.name || '—')}</div><div class="directory-meta">${esc(n.update?.type || 'Aggiornamento')} • ${n.update?.date ? localDate(n.update.date) : 'n.d.'}</div></div>`).join('')}</div>`:`<div class="notice">Nessun movimento ufficiale disponibile per questa squadra.</div>`}</div></div>`;
+  return `<div class="tab-shell" style="display:grid;gap:14px"><div class="card section"><h2>News ufficiali squadra</h2>${official.length?`<div class="list">${official.map(item=>`<div class="news-card"><strong><a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title || 'News ufficiale')}</a></strong><div class="directory-meta">Fonte: ${esc(item.source || sourceLabel)}</div><div class="directory-meta">${item.publishedAt ? 'Pubblicata: '+localDate(item.publishedAt) : 'Data non disponibile'}</div>${item.description?`<div class="directory-meta" style="margin-top:8px">${esc(item.description)}</div>`:''}</div>`).join('')}</div>`:`<div class="notice">Nessuna news ufficiale disponibile al momento per questa squadra.</div>`}${officialNote?`<div class="footer-note">${esc(officialNote)}</div>`:''}</div><div class="card section"><h2>Movimenti ufficiali squadra</h2>${news.length?`<div class="list">${news.map(n=>`<div class="news-card"><strong>${esc(n.player?.name || 'Giocatore')}</strong><div class="directory-meta">${esc(n.teams?.out?.name || '—')} → ${esc(n.teams?.in?.name || '—')}</div><div class="directory-meta">${esc(tLabel(n.update?.type || 'Aggiornamento'))} • ${n.update?.date ? localDate(n.update.date) : 'n.d.'}</div></div>`).join('')}</div>`:`<div class="notice">Nessun movimento ufficiale disponibile per questa squadra.</div>`}</div></div>`;
 }
 function teamView(){
   if(!state.selectedTeam) return '';
@@ -332,25 +400,23 @@ function rankingCard(item, idx, type){
   return `<div class="ranking-row"><div class="ranking-rank">${idx+1}</div><div><strong>${esc(player.name || 'Giocatore')}</strong><div class="ranking-meta">${esc(team)} • Presenze: ${stats.games?.appearences ?? stats.games?.appearances ?? '—'}</div></div><div><strong>${esc(val)}${suffix}</strong></div></div>`;
 }
 
-function rankingView(type, title, description){
+function rankingView(type){
   const list = state.rankings[type] || [];
   const loading = state.rankingsLoading[type];
   const note = state.rankingsNote[type];
-  return `<div class="card section">${loading?`<div class="notice">Caricamento classifica...</div>`:!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:!list.length?`<div class="notice">Nessun dato disponibile per questa competizione.</div>`:`<div class="list">${list.map((item,idx)=>rankingCard(item,idx,type)).join('')}</div>`}${note?`<div class="footer-note">${esc(note)}</div>`:''}</div>`;
+  if(loading) return `<div class="directory-meta">Caricamento classifica...</div>`;
+  if(!state.competition) return `<div class="directory-meta">Seleziona prima una competizione dal menu laterale.</div>`;
+  if(!list.length) return `<div class="directory-meta">Nessun dato disponibile.</div>${note?`<div class="footer-note">${esc(note)}</div>`:''}`;
+  return `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>Valore</th></tr></thead><tbody>${list.slice(0,10).map((item,idx)=>{ const player = item.player || {}; const stats = item.statistics?.[0] || {}; const team = stats.team?.name || 'Squadra'; const val = type==='scorers' ? (stats.goals?.total ?? 0) : type==='assists' ? (stats.goals?.assists ?? 0) : (stats.games?.rating || '—'); return `<tr><td>${idx+1}</td><td class="namecol"><div>${esc(player.name || 'Giocatore')}</div><div class="ranking-meta">${esc(team)}</div></td><td>${esc(val)}</td></tr>`; }).join('')}</tbody></table>${note?`<div class="footer-note">${esc(note)}</div>`:''}`;
+}
+
+function loadAllRankings(){
+  ['scorers','assists','ratings'].forEach(loadRanking);
 }
 
 function topView(){
-  const type = state.topTab || 'scorers';
-  const title = type==='scorers' ? 'Top Marcatori' : type==='assists' ? 'Top Assist' : 'Top Valutazioni';
-  const description = type==='scorers' ? 'Classifica marcatori della competizione selezionata.' : type==='assists' ? 'Classifica assist della competizione selezionata.' : 'Giocatori con le migliori valutazioni medie rilevate nei dati disponibili.';
-  const cards = [
-    { key:'scorers', chip:'Gol', title:'Marcatori', desc:'Per vedere subito chi decide le partite.' },
-    { key:'assists', chip:'Assist', title:'Assist', desc:'Per premiare chi crea occasioni e rifinisce.' },
-    { key:'ratings', chip:'Voti', title:'Valutazioni', desc:'Per evidenziare il rendimento medio più alto.' }
-  ];
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Un unico menu elegante per raccogliere le classifiche individuali più utili. Visivamente è più pulito, più moderno e più facile da navigare.</p><div class="top-grid">${cards.map(card=>`<div class="top-card ${(state.topTab||'scorers')===card.key?'active':''}" onclick="setTopTab('${card.key}')"><em>${card.chip}</em><strong>${card.title}</strong><div class="directory-meta">${card.desc}</div></div>`).join('')}</div><div class="footer-note" style="margin-top:14px">${description}</div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Macro-categoria</strong><div class="muted small">${esc(currentMacro())}</div></div><div class="row"><strong>Vista attiva</strong><div class="muted small">${title}</div></div></div></div></div>${rankingView(type, title, description)}</div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Una sola pagina, più pulita e più forte visivamente: tre tabelle affiancate per <strong>Marcatori</strong>, <strong>Assist</strong> e <strong>Valutazioni</strong>, con colori ispirati all'Italia.</p><div class="top-overview"><div class="top-table red"><div class="top-table-head"><em>Rosso</em><h2 style="margin-bottom:6px">Marcatori</h2><div class="muted small">Chi segna di più nella competizione selezionata.</div></div>${rankingView('scorers')}</div><div class="top-table white"><div class="top-table-head"><em>Bianco</em><h2 style="margin-bottom:6px">Assist</h2><div class="muted small">Chi crea più occasioni e rifinisce meglio.</div></div>${rankingView('assists')}</div><div class="top-table green"><div class="top-table-head"><em>Verde</em><h2 style="margin-bottom:6px">Valutazioni</h2><div class="muted small">I rendimenti medi più alti disponibili nei dati.</div></div>${rankingView('ratings')}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Vista</strong><div class="muted small">Classifiche unificate</div></div><div class="row"><strong>Stile</strong><div class="muted small">Ispirazione tricolore italiana</div></div></div></div></div></div>`;
 }
-
 
 function marketView(){
   const rumorsDemo = [
@@ -358,7 +424,7 @@ function marketView(){
     'Puoi collegare una fonte custom o un backend dedicato alle indiscrezioni.',
     'La sezione ufficiali resta invece alimentata dai trasferimenti confermati.'
   ];
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. La parte ufficiale usa i dati transfer disponibili; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / transfers</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Pronto per integrazione custom</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(t.update?.type || 'Trasferimento')} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. La parte ufficiale usa i dati transfer disponibili; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / transfers</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Pronto per integrazione custom</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(tLabel(t.update?.type || 'Trasferimento'))} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
 }
 
 function mainView(){
@@ -380,10 +446,16 @@ function setTeamDirectorySearch(v){ state.teamDirectorySearch=v; render(); }
 function setTeamTab(v){ state.teamTab=v; render(); }
 function toggleMacro(key){ state.openMacro = state.openMacro === key ? '' : key; render(); }
 function setMarketTab(v){ state.marketTab=v; render(); if(v==='official') loadTransfers(); }
-function setTopTab(v){ state.topTab=v; state.page='top'; render(); loadRanking(v); }
+function setTopTab(v){ state.topTab=v; state.page='top'; render(); loadAllRankings(); }
+function resetToHome(){
+  state.page='home'; state.competition=''; state.filter='all'; state.search=''; state.fixtures=[]; state.loading=false; state.error='';
+  state.selected=null; state.meta=null; state.standings=[]; state.standingsLoading=false; state.selectedTeam=null; state.teamData=null; state.teamLoading=false;
+  state.teamDirectorySearch=''; state.teamTab='overview'; state.marketTab='official'; state.topTab='scorers';
+}
 function setPage(page){
+  if(page==='home'){ resetToHome(); render(); return; }
   state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render();
-  if(page==='top') loadRanking(state.topTab || 'scorers');
+  if(page==='top') loadAllRankings();
   if(page==='market') loadTransfers();
 }
 function goCompetition(){
