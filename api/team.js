@@ -1,4 +1,5 @@
 import { fetchJson, getCfg } from './_map.js';
+import { fetchOfficialNews } from './_news.js';
 
 async function safeFetch(url, key, fallback) {
   try {
@@ -82,6 +83,8 @@ export default async function handler(req, res) {
         teams: update.teams || {}
       }));
 
+    const officialNews = await fetchOfficialNews(team.name);
+
     return res.status(200).json({
       team,
       standing,
@@ -91,7 +94,8 @@ export default async function handler(req, res) {
       teamStats,
       cards,
       formations,
-      teamNews
+      teamNews,
+      officialNews
     });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore nel proxy team.' });

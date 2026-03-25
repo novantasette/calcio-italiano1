@@ -1,28 +1,29 @@
-Calcio Italiano Live V9
+Calcio Italiano Live — versione con news ufficiali squadra
 
-Sostituisci:
+File principali aggiornati:
 - index.html
-- api/fixtures.js
-- api/match.js
-- api/standings.js
 - api/team.js
-- package.json
+- api/news.js
+- api/_news.js
 
-Poi commit e redeploy su Vercel.
+Env vars su Vercel:
+- API_FOOTBALL_KEY = obbligatoria
+- NEWS_API_KEY = facoltativa ma consigliata
 
-Aggiunge live per:
-- Serie D Girone C = 428
-- Serie D Girone D = 429
-- Serie D Girone E = 430
-- Serie D Girone F = 431
-- Serie D Girone G = 432
-- Serie D Girone H = 433
-- Serie D Girone I = 434
-- Serie A Cup Women = 1198
-- Serie A Women = 139
+Come funziona:
+- se NEWS_API_KEY è presente, le news ufficiali squadra vengono filtrate sulla fonte ufficiale del club
+- se NEWS_API_KEY non è presente, il progetto usa un fallback via Google News RSS filtrato sul dominio ufficiale della squadra
+- nella scheda squadra, tab “Notizie”, ora trovi:
+  - News ufficiali squadra
+  - Movimenti ufficiali squadra
 
-Aggiunge anche:
-- pagina Supporta il progetto
-- testo progetto
-- descrizione autore
-- pulsante PayPal
+Note:
+- il mapping delle fonti ufficiali è in api/_news.js
+- per squadre non ancora mappate basta aggiungere dominio e nome fonte nello stesso file
+- API_FOOTBALL_KEY resta necessaria per partite, classifica, rosa, infortuni, formazioni e trasferimenti
+
+Deploy:
+1. sostituisci i file nel progetto
+2. aggiungi NEWS_API_KEY su Vercel se vuoi la versione news più stabile
+3. commit su GitHub
+4. redeploy su Vercel
