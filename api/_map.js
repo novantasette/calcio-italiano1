@@ -29,6 +29,9 @@ export const COMP_MAP = {
   "primavera-2": { league: 706, season: 2025, label: "Campionato Primavera 2" },
   "coppa-italia-primavera": { league: 704, season: 2025, label: "Coppa Italia Primavera" },
   "supercoppa-primavera": { league: 817, season: 2025, label: "Supercoppa Primavera" },
+  "champions-league": { league: 2, season: 2025, label: "UEFA Champions League" },
+  "europa-league": { league: 3, season: 2025, label: "UEFA Europa League" },
+  "conference-league": { league: 848, season: 2025, label: "UEFA Europa Conference League" },
 };
 
 export async function fetchJson(url, key) {

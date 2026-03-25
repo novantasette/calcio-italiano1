@@ -1,4 +1,6 @@
 const TEAM_OFFICIAL_SOURCES = {
+  'italia': { domain: 'figc.it', siteName: 'FIGC' },
+  'italy': { domain: 'figc.it', siteName: 'FIGC' },
   'atalanta': { domain: 'atalanta.it', siteName: 'Atalanta BC' },
   'bologna': { domain: 'bolognafc.it', siteName: 'Bologna FC 1909' },
   'cagliari': { domain: 'cagliaricalcio.com', siteName: 'Cagliari Calcio' },
