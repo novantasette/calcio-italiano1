@@ -32,9 +32,9 @@ export const COMP_MAP = {
   "champions-league": { league: 2, season: 2025, label: "UEFA Champions League" },
   "europa-league": { league: 3, season: 2025, label: "UEFA Europa League" },
   "conference-league": { league: 848, season: 2025, label: "UEFA Europa Conference League" },
-  "nations-league": { league: 5, season: 2024, label: "UEFA Nations League" },
-  "mondiali": { league: 1, season: 2026, label: "World Cup" },
-  "qualificazioni-mondiali": { league: 32, season: 2024, label: "World Cup - Qualification Europe" },
+  "nations-league": { league: 5, season: 2025, label: "UEFA Nations League" },
+  "world-cup": { league: 1, season: 2025, label: "Mondiali" },
+  "world-cup-qualifiers-europe": { league: 32, season: 2025, label: "Qualificazioni Mondiali" }
 };
 
 export async function fetchJson(url, key) {
@@ -48,14 +48,20 @@ export function getCfg(comp) {
   return COMP_MAP[comp];
 }
 
-
 export const EURO_COMP_CODES = new Set(['champions-league', 'europa-league', 'conference-league']);
+export const NATIONAL_COMP_CODES = new Set(['nations-league', 'world-cup', 'world-cup-qualifiers-europe']);
 
 export async function getItalianTeamIdsForCompetition(cfg, key) {
   const fixturesData = await fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}`, key);
   const ids = Array.from(new Set((fixturesData.response || []).flatMap(item => [item?.teams?.home?.id, item?.teams?.away?.id]).filter(Boolean)));
   const teamsPayload = await Promise.all(ids.map(id => fetchJson(`https://v3.football.api-sports.io/teams?id=${id}`, key).catch(() => ({ response: [] }))));
-  return new Set(teamsPayload.flatMap(payload => payload.response || []).filter(entry => String(entry.team?.country || '').toLowerCase() === 'italy').map(entry => Number(entry.team?.id)).filter(Boolean));
+  return new Set(
+    teamsPayload
+      .flatMap(payload => payload.response || [])
+      .filter(entry => String(entry.team?.country || '').toLowerCase() === 'italy')
+      .map(entry => Number(entry.team?.id))
+      .filter(Boolean)
+  );
 }
 
 export function filterFixturesByTeamIds(fixtures, allowedTeamIds) {
@@ -67,4 +73,90 @@ export function filterStandingsByTeamIds(standings, allowedTeamIds) {
   if (!allowedTeamIds || !allowedTeamIds.size) return standings || [];
   const rows = Array.isArray(standings?.[0]) ? standings.flat() : (standings || []);
   return rows.filter(row => allowedTeamIds.has(Number(row?.team?.id)));
+}
+
+export function isFinishedFixture(item) {
+  return ['FT', 'AET', 'PEN'].includes(String(item?.fixture?.status?.short || ''));
+}
+
+export function isLiveFixture(item) {
+  return ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'LIVE', 'INT'].includes(String(item?.fixture?.status?.short || ''));
+}
+
+export function isScheduledFixture(item) {
+  return !isFinishedFixture(item) && !isLiveFixture(item);
+}
+
+function pairKey(item) {
+  const ids = [Number(item?.teams?.home?.id || 0), Number(item?.teams?.away?.id || 0)].sort((a, b) => a - b);
+  return ids.join('-');
+}
+
+export function buildRecentItalianEuroSummary(fixtures, allowedTeamIds, maxItems = 8) {
+  const finished = (fixtures || []).filter(isFinishedFixture).sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
+  const grouped = new Map();
+  for (const item of finished) {
+    const key = pairKey(item);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(item);
+  }
+
+  const summaries = [];
+  for (const matches of grouped.values()) {
+    matches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+    const latest = matches[matches.length - 1];
+    const refHome = latest?.teams?.home || {};
+    const refAway = latest?.teams?.away || {};
+    const homeItalian = allowedTeamIds?.has(Number(refHome.id));
+    const awayItalian = allowedTeamIds?.has(Number(refAway.id));
+    if (!homeItalian && !awayItalian) continue;
+
+    let aggHome = 0;
+    let aggAway = 0;
+    for (const match of matches) {
+      const sameOrientation = Number(match?.teams?.home?.id) === Number(refHome.id);
+      const hg = Number(match?.goals?.home ?? 0);
+      const ag = Number(match?.goals?.away ?? 0);
+      if (sameOrientation) {
+        aggHome += hg;
+        aggAway += ag;
+      } else {
+        aggHome += ag;
+        aggAway += hg;
+      }
+    }
+
+    let qualifiedId = null;
+    if (aggHome !== aggAway) {
+      qualifiedId = aggHome > aggAway ? Number(refHome.id) : Number(refAway.id);
+    } else if (String(latest?.fixture?.status?.short || '') === 'PEN') {
+      const pHome = Number(latest?.score?.penalty?.home ?? -1);
+      const pAway = Number(latest?.score?.penalty?.away ?? -1);
+      if (pHome >= 0 && pAway >= 0 && pHome !== pAway) {
+        qualifiedId = pHome > pAway ? Number(refHome.id) : Number(refAway.id);
+      }
+    }
+
+    summaries.push({
+      updatedAt: latest?.fixture?.date,
+      home: {
+        id: refHome.id,
+        name: refHome.name,
+        score: latest?.goals?.home ?? '-',
+        aggregate: aggHome,
+        qualified: Number(refHome.id) === qualifiedId
+      },
+      away: {
+        id: refAway.id,
+        name: refAway.name,
+        score: latest?.goals?.away ?? '-',
+        aggregate: aggAway,
+        qualified: Number(refAway.id) === qualifiedId
+      },
+      legs: matches.length
+    });
+  }
+
+  summaries.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  return summaries.slice(0, maxItems);
 }
