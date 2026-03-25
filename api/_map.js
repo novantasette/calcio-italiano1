@@ -23,7 +23,12 @@ export const COMP_MAP = {
   "serie-d-playoff-promozione": { league: 997, season: 2025, label: "Serie D - Playoff Promozione" },
   "serie-d-playout-retrocessione": { league: 998, season: 2025, label: "Serie D - Playout Retrocessione" },
   "serie-a-women": { league: 139, season: 2025, label: "Serie A Femminile" },
-  "serie-a-cup-women": { league: 1198, season: 2025, label: "Serie A Cup Women" }
+  "serie-a-cup-women": { league: 1198, season: 2025, label: "Serie A Cup Women" },
+  "coppa-italia-women": { league: 1171, season: 2025, label: "Coppa Italia Women" },
+  "primavera-1": { league: 705, season: 2025, label: "Campionato Primavera 1" },
+  "primavera-2": { league: 706, season: 2025, label: "Campionato Primavera 2" },
+  "coppa-italia-primavera": { league: 704, season: 2025, label: "Coppa Italia Primavera" },
+  "supercoppa-primavera": { league: 817, season: 2025, label: "Supercoppa Primavera" },
 };
 
 export async function fetchJson(url, key) {
