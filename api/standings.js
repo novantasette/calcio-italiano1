@@ -12,11 +12,13 @@ export default async function handler(req, res) {
     const data = await fetchJson(`https://v3.football.api-sports.io/standings?league=${cfg.league}&season=${cfg.season}`, key);
     const raw = data.response?.[0]?.league?.standings || [];
     let standings = raw.flat();
+    let noItalianTeams = false;
     if (EURO_COMP_CODES.has(comp)) {
       const italianTeamIds = await getItalianTeamIdsForCompetition(cfg, key);
       standings = filterStandingsByTeamIds(standings, italianTeamIds);
+      noItalianTeams = !standings.length;
     }
-    return res.status(200).json({ standings });
+    return res.status(200).json({ standings, debug: { noItalianTeams } });
   } catch (e) {
     return res.status(500).json({ error: e.message || "Errore nel proxy standings." });
   }
