@@ -103,9 +103,34 @@ const resultBadge = match => {
 };
 const standingRowClass = rank => {
   const r = Number(rank || 0);
-  if(r>=1 && r<=4) return 'standing-top';
-  if(r===5 || r===6) return 'standing-mid';
-  if(r>=18) return 'standing-bottom';
+  const code = currentCode();
+  if(['champions-league','europa-league','conference-league'].includes(code)) return '';
+  if(code==='serie-a'){
+    if(r>=1 && r<=4) return 'standing-top';
+    if(r===5 || r===6) return 'standing-mid';
+    if(r>=18) return 'standing-bottom';
+    return '';
+  }
+  if(code==='serie-b'){
+    if(r<=2) return 'standing-top';
+    if(r>=3 && r<=8) return 'standing-mid';
+    if(r===16 || r===17) return 'standing-mid';
+    if(r>=18) return 'standing-bottom';
+    return '';
+  }
+  if(['serie-c-girone-a','serie-c-girone-b','serie-c-girone-c'].includes(code)){
+    if(r===1) return 'standing-top';
+    if(r>=2 && r<=10) return 'standing-mid';
+    if(r===16) return 'standing-mid';
+    if(r>=17) return 'standing-bottom';
+    return '';
+  }
+  if(['serie-d-girone-a','serie-d-girone-b','serie-d-girone-c','serie-d-girone-d','serie-d-girone-e','serie-d-girone-f','serie-d-girone-g','serie-d-girone-h','serie-d-girone-i'].includes(code)){
+    if(r===1) return 'standing-top';
+    if(r>=2 && r<=5) return 'standing-mid';
+    if(r>=16) return 'standing-bottom';
+    return '';
+  }
   return '';
 };
 function statusClass(short){ if(['1H','2H','HT','ET','BT','P','LIVE','INT'].includes(short)) return 'live'; if(['FT','AET','PEN'].includes(short)) return 'finished'; return 'scheduled'; }
@@ -264,33 +289,64 @@ function matchesList(){
     list=list.filter(m=>m.teams.home.name.toLowerCase().includes(q)||m.teams.away.name.toLowerCase().includes(q));
   }
 
-  const euroEmptyMessage = state.meta?.italianTeamsOnly && !liveList.length && !nextList.length
-    ? `<div class="notice"><strong>Tutte le squadre italiane sono state eliminate dalla competizione.</strong><div class="footer-note">Qui sotto trovi gli ultimi risultati delle italiane, con aggregate e indicazione della squadra qualificata.</div></div>`
+  const euroMode = state.meta?.italianTeamsOnly && ['champions-league','europa-league','conference-league'].includes(currentCode());
+  const euroEliminated = !!state.meta?.europeEliminated;
+  const euroEmptyMessage = euroMode && euroEliminated && state.filter !== 'finished'
+    ? `<div class="notice"><strong>Tutte le squadre italiane sono state eliminate dalla competizione.</strong><div class="footer-note">Nelle schede Tutte, Live e Prossime non c'è più nulla da mostrare. Apri Finite per rivedere le ultime partite delle italiane.</div></div>`
     : '';
 
-  const euroSummary = state.meta?.recentItalianResults?.length
+  const euroSummary = state.meta?.recentItalianResults?.length && state.filter==='finished'
     ? `<div class="card section" style="margin-bottom:12px"><h2>Ultimi risultati delle italiane</h2><div class="list">${state.meta.recentItalianResults.map(tie=>`<div class="market-item"><div class="rowflex"><div><strong>${esc(tie.home.name)} ${tie.home.score} (${tie.home.aggregate}) ${tie.home.qualified ? '↑' : ''}</strong></div><div class="muted small">${tie.legs===2?'Andata / ritorno':'Partita secca'}</div></div><div style="margin-top:8px"><strong>${esc(tie.away.name)} ${tie.away.score} (${tie.away.aggregate}) ${tie.away.qualified ? '↑' : ''}</strong></div></div>`).join('')}</div></div>`
     : '';
 
-  const body = !list.length
-    ? `${euroEmptyMessage}${euroSummary}<div class="notice">Nessuna partita trovata per i filtri selezionati.</div>`
+  const hideMatchesBecauseEliminated = euroMode && euroEliminated && state.filter !== 'finished';
+  const visibleList = hideMatchesBecauseEliminated ? [] : list;
+
+  const body = !visibleList.length
+    ? `${euroEmptyMessage}${euroSummary}<div class="notice">${hideMatchesBecauseEliminated ? 'Nessuna partita da mostrare in questa tab.' : 'Nessuna partita trovata per i filtri selezionati.'}</div>`
     : ((state.filter==='finished' || state.filter==='live') 
-      ? `${euroEmptyMessage}${euroSummary}<div class="list">${list.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small"><strong>${localDateLong(m.fixture.date)}</strong> • ${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`
-      : `${euroEmptyMessage}${euroSummary}${renderMatchesGrouped(list)}`);
+      ? `${euroEmptyMessage}${euroSummary}<div class="list">${visibleList.map(m=>`<div class="card match" onclick="openMatch(${m.fixture.id})"><div class="rowflex"><div><div class="muted small"><strong>${localDateLong(m.fixture.date)}</strong> • ${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${esc(m.teams.home.name)} vs ${esc(m.teams.away.name)}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div>`).join('')}</div>`
+      : `${euroEmptyMessage}${euroSummary}${renderMatchesGrouped(visibleList)}`);
   return `<div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Partite</h2><div class="muted small">${note}</div></div><div class="muted small">${state.fixtures.length ? state.fixtures.length+' incontri disponibili' : 'Nessun incontro caricato'}</div></div>${toolbar()}${state.loading?`<div class="notice">Caricamento partite...</div>`:state.error?`<div class="notice">${esc(state.error)}</div>`:body}</div>`;
 }
 
 function standingsCard(){
-  const serieA = currentCode()==='serie-a';
+  const code = currentCode();
+  const euro = ['champions-league','europa-league','conference-league'].includes(code);
+  const noItalian = state.standingsMeta && state.standingsMeta.noItalianTeams && euro;
   const labelForRow = rank => {
-    if(!serieA) return rank>=18 ? '<span class="standing-tag">Retrocessione</span>' : '';
-    if(rank<=4) return '<span class="standing-tag">Champions League</span>';
-    if(rank===5) return '<span class="standing-tag">Europa League</span>';
-    if(rank===6) return '<span class="standing-tag">Conference League</span>';
-    if(rank>=18) return '<span class="standing-tag">Retrocessione</span>';
+    const r = Number(rank || 0);
+    if(euro) return '';
+    if(code==='serie-a'){
+      if(r<=4) return '<span class="standing-tag">Champions League</span>';
+      if(r===5) return '<span class="standing-tag">Europa League</span>';
+      if(r===6) return '<span class="standing-tag">Conference League</span>';
+      if(r>=18) return '<span class="standing-tag">Retrocessione</span>';
+      return '';
+    }
+    if(code==='serie-b'){
+      if(r<=2) return '<span class="standing-tag">Promozione</span>';
+      if(r>=3 && r<=8) return '<span class="standing-tag">Playoff</span>';
+      if(r===16 || r===17) return '<span class="standing-tag">Playout</span>';
+      if(r>=18) return '<span class="standing-tag">Retrocessione</span>';
+      return '';
+    }
+    if(['serie-c-girone-a','serie-c-girone-b','serie-c-girone-c'].includes(code)){
+      if(r===1) return '<span class="standing-tag">Promozione</span>';
+      if(r>=2 && r<=10) return '<span class="standing-tag">Playoff</span>';
+      if(r===16) return '<span class="standing-tag">Playout</span>';
+      if(r>=17) return '<span class="standing-tag">Retrocessione</span>';
+      return '';
+    }
+    if(['serie-d-girone-a','serie-d-girone-b','serie-d-girone-c','serie-d-girone-d','serie-d-girone-e','serie-d-girone-f','serie-d-girone-g','serie-d-girone-h','serie-d-girone-i'].includes(code)){
+      if(r===1) return '<span class="standing-tag">Promozione</span>';
+      if(r>=2 && r<=5) return '<span class="standing-tag">Playoff</span>';
+      if(r>=16) return '<span class="standing-tag">Retrocessione</span>';
+      return '';
+    }
     return '';
   };
-  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Classifica</h2><div class="muted small">${esc(state.competition)}</div></div>${state.standingsLoading?`<div class="notice">Caricamento classifica...</div>`:!state.standings.length?`<div class="notice">Classifica non disponibile per questa categoria.</div>`:`<table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>N</th><th>P</th><th>DR</th></tr></thead><tbody>${state.standings.map(r=>`<tr class="${standingRowClass(r.rank)}"><td>${r.rank}</td><td>${teamLink(r.team.name,r.team.id)} ${labelForRow(r.rank)}</td><td>${r.points}</td><td>${r.all.played}</td><td>${r.all.win}</td><td>${r.all.draw}</td><td>${r.all.lose}</td><td>${r.goalsDiff}</td></tr>`).join('')}</tbody></table>`}</div>`;
+  return `<div class="card section"><div class="rowflex" style="margin-bottom:10px"><h2>Classifica</h2><div class="muted small">${esc(state.competition)}</div></div>${state.standingsLoading?`<div class="notice">Caricamento classifica...</div>`:!state.standings.length?`<div class="notice">${noItalian ? 'Nessuna squadra italiana ancora presente nella classifica attuale della competizione.' : 'Classifica non disponibile per questa categoria.'}</div>`:`<table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>N</th><th>P</th><th>DR</th></tr></thead><tbody>${state.standings.map((r,i)=>`<tr class="${standingRowClass(r.displayRank || r.rank)}"><td>${r.displayRank || r.rank || (i+1)}</td><td>${teamLink(r.team.name,r.team.id)} ${labelForRow(r.displayRank || r.rank)}</td><td>${r.points}</td><td>${r.all.played}</td><td>${r.all.win}</td><td>${r.all.draw}</td><td>${r.all.lose}</td><td>${r.goalsDiff}</td></tr>`).join('')}</tbody></table>`}</div>`;
 }
 
 function homeView(){ return `<div class="content">${homeHero()}${homeLanding()}</div>`; }
