@@ -175,13 +175,17 @@ const CATEGORY_TREE = [
     { name:'Coppa Italia', code:'coppa-italia', live:true },
     { name:'Supercoppa Italiana', code:'supercoppa-italiana', live:false, disabled:true }
   ] },
-  { key:'serie-b', label:'Serie B', items:[{ name:'Serie B', code:'serie-b', live:true }] },
+  { key:'serie-b', label:'Serie B', items:[
+    { name:'Serie B', code:'serie-b', live:true }
+  ] },
   { key:'serie-c', label:'Serie C', items:[
     { name:'Serie C - Girone A', code:'serie-c-a', live:true },
     { name:'Serie C - Girone B', code:'serie-c-b', live:true },
     { name:'Serie C - Girone C', code:'serie-c-c', live:true },
-    { name:'Coppa Italia Serie C', code:'coppa-italia-serie-c', live:false, disabled:true },
-    { name:'Supercoppa Serie C', code:'supercoppa-serie-c', live:false, disabled:true }
+    { name:'Coppa Italia Serie C', code:'coppa-italia-serie-c', live:true },
+    { name:'Playoff Promozione Serie C', code:'serie-c-playoff-promozione', live:true },
+    { name:'Playout Retrocessione Serie C', code:'serie-c-playout-retrocessione', live:true },
+    { name:'Supercoppa Serie C', code:'supercoppa-serie-c', live:true }
   ]},
   { key:'serie-d', label:'Serie D', items:[
     { name:'Serie D - Girone A', code:'serie-d-a', live:true },
@@ -193,7 +197,10 @@ const CATEGORY_TREE = [
     { name:'Serie D - Girone G', code:'serie-d-g', live:true },
     { name:'Serie D - Girone H', code:'serie-d-h', live:true },
     { name:'Serie D - Girone I', code:'serie-d-i', live:true },
-    { name:'Coppa Italia Serie D', code:'coppa-italia-serie-d', live:false, disabled:true }
+    { name:'Coppa Italia Serie D', code:'coppa-italia-serie-d', live:true },
+    { name:'Poule Scudetto Serie D', code:'serie-d-poule-scudetto', live:true },
+    { name:'Playoff Promozione Serie D', code:'serie-d-playoff-promozione', live:true },
+    { name:'Playout Retrocessione Serie D', code:'serie-d-playout-retrocessione', live:true }
   ]},
   { key:'primavera', label:'Primavera', items:[
     { name:'Primavera 1', code:'primavera-1', live:false, disabled:true },
@@ -208,12 +215,15 @@ const CATEGORY_TREE = [
   { key:'italiane-europa', label:'Italiane in Europa', items:[
     { name:'Champions League', code:'champions-league', live:false, disabled:true },
     { name:'Europa League', code:'europa-league', live:false, disabled:true },
-    { name:'Conference League', code:'conference-league', live:false, disabled:true }
+    { name:'Conference League', code:'conference-league', live:false, disabled:true },
+    { name:'Supercoppa UEFA', code:'supercoppa-uefa', live:false, disabled:true }
   ]},
-  { key:'nazionale', label:'Nazionale Italia', items:[
+  { key:'nazionale', label:'Nazionale', items:[
     { name:'Italia', code:'italia', live:false, disabled:true },
     { name:'Italia U21', code:'italia-u21', live:false, disabled:true },
     { name:'Qualificazioni Mondiali', code:'qualificazioni-mondiali', live:false, disabled:true },
+    { name:'Qualificazioni Europei', code:'qualificazioni-europei', live:false, disabled:true },
+    { name:'UEFA Nations League', code:'nations-league', live:false, disabled:true },
     { name:'Europei', code:'europei', live:false, disabled:true },
     { name:'Mondiali', code:'mondiali', live:false, disabled:true }
   ]}
@@ -312,7 +322,7 @@ function topbar(){
 }
 
 function sidebar(){
-  return `<aside class="sidebar"><h3>Campionati</h3><div class="footer-note" style="margin:0 0 14px">Apri una macro-categoria e scegli la sottocategoria da visualizzare.</div>${CATEGORY_TREE.map(group=>`<div class="macro ${state.openMacro===group.key?'open':''}"><button class="head" onclick="toggleMacro('${group.key}')"><span>${group.label}</span><span>${state.openMacro===group.key?'−':'+'}</span></button><div class="subs">${group.items.map(item=>`<button class="${item.disabled?'disabled':''} ${state.competition===item.name?'active':''}" onclick="${item.disabled?'return false':`selectCompetition('${item.name}')`}">${item.name}${item.disabled?' <span class="muted">(in arrivo)</span>':''}</button>`).join('')}</div></div>`).join('')}</aside>`;
+  return `<aside class="sidebar"><h3>Campionati</h3><div class="footer-note" style="margin:0 0 14px">Apri una macro-categoria e scegli la sottocategoria da visualizzare. Ho già collegato tutte quelle ricavate dagli screen con ID v3 del 2025; le altre restano pronte come prossimi inserimenti.</div>${CATEGORY_TREE.map(group=>`<div class="macro ${state.openMacro===group.key?'open':''}"><button class="head" onclick="toggleMacro('${group.key}')"><span>${group.label}</span><span>${state.openMacro===group.key?'−':'+'}</span></button><div class="subs">${group.items.map(item=>`<button class="${item.disabled?'disabled':''} ${state.competition===item.name?'active':''}" onclick="${item.disabled?'return false':`selectCompetition('${item.name}')`}">${item.name}${item.disabled?' <span class="muted">(in arrivo)</span>':''}</button>`).join('')}</div></div>`).join('')}</aside>`;
 }
 
 function toolbar(){
