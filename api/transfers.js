@@ -15,6 +15,9 @@ export default async function handler(req, res) {
       teams.map(teamId => fetchJson(`https://v3.football.api-sports.io/transfers?team=${teamId}`, key).catch(() => ({ response: [] })))
     );
 
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 60);
+
     const transfers = transferLists
       .flatMap(data => data.response || [])
       .flatMap(entry => (entry.transfers || []).map(transfer => ({
@@ -22,12 +25,16 @@ export default async function handler(req, res) {
         update: transfer,
         teams: transfer.teams
       })))
+      .filter(item => {
+        const when = item.update?.date ? new Date(item.update.date) : null;
+        return when && !Number.isNaN(when.getTime()) && when >= cutoff;
+      })
       .sort((a, b) => new Date(b.update?.date || 0) - new Date(a.update?.date || 0))
-      .slice(0, 30);
+      .slice(0, 18);
 
     return res.status(200).json({
       transfers,
-      note: 'Mercato ufficiale basato sugli ultimi trasferimenti disponibili per una selezione di squadre della competizione.'
+      note: 'Mercato ufficiale limitato agli aggiornamenti più recenti (ultimi 60 giorni) per mantenere la pagina più pulita.'
     });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore nel proxy transfers.' });

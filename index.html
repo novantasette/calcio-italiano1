@@ -12,6 +12,11 @@
     }
     *{box-sizing:border-box} html,body{margin:0;padding:0}
     body{font-family:Inter,Arial,Helvetica,sans-serif;background:radial-gradient(circle at top, #10233d 0%, var(--bg) 34%, #040b13 100%);color:var(--text)}
+    *{scrollbar-width:thin;scrollbar-color:#2e5f93 #091525}
+    *::-webkit-scrollbar{width:12px;height:12px}
+    *::-webkit-scrollbar-track{background:#091525}
+    *::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#1d5b8f,#0f8f63);border-radius:999px;border:2px solid #091525}
+    *::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#2b78bb,#19a974)}
     button,input{font:inherit} a{color:inherit}
     .topbar{position:sticky;top:0;z-index:40;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 22px;background:rgba(6,16,26,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
     .brand-inline{display:flex;align-items:center;gap:12px;min-width:0}
@@ -36,7 +41,7 @@
     .subs button.active{border-color:#396592;background:#13263c}
     .subs button.disabled{opacity:.55;cursor:not-allowed}
     .content{padding:22px 22px 40px}
-    .hero{display:grid;grid-template-columns:1.4fr .8fr;gap:16px;margin-bottom:18px}
+    .hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.6fr);gap:16px;margin-bottom:18px}
     .card{background:linear-gradient(180deg,rgba(17,31,49,.96),rgba(9,18,30,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
     .hero-main,.hero-side,.section,.notice{padding:22px}
     h1{margin:0 0 8px;font-size:2.45rem;line-height:1.05} h2{margin:0 0 12px;font-size:1.16rem} h3{margin:0 0 10px;font-size:1rem}
@@ -75,6 +80,28 @@
     .tab-shell{margin-top:14px}
     .news-card a{color:#dff0ff;text-decoration:none}
     .news-card a:hover{text-decoration:underline}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
+    .match-month{font-size:1.16rem;font-weight:900;text-transform:capitalize;color:#ffffff;margin:18px 0 10px;padding:10px 14px;border-left:4px solid #3ca86a;background:rgba(255,255,255,.04);border-radius:12px}
+    .match-date{font-size:1rem;font-weight:800;text-transform:capitalize;color:#dff0ff;margin:16px 0 10px;padding:8px 12px;background:rgba(14,28,44,.95);border:1px solid rgba(255,255,255,.08);border-radius:12px}
+    .team-directory-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-bottom:18px}
+    .team-highlight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    .directory-card{position:relative;overflow:hidden;min-height:160px;background:linear-gradient(180deg,rgba(18,34,53,.95),rgba(10,19,31,.98))}
+    .directory-card:after{content:'';position:absolute;right:-30px;bottom:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(60,168,106,.28),rgba(60,168,106,0))}
+    .directory-card strong{font-size:1.08rem}
+    .directory-kpi{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .directory-kpi span{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);font-size:.82rem;color:#dcecff}
+    .support-wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+    .support-visual{display:grid;gap:12px}
+    .support-banner{position:relative;overflow:hidden;padding:20px;border-radius:22px;background:linear-gradient(135deg,rgba(15,53,89,.95),rgba(10,101,74,.92));border:1px solid rgba(255,255,255,.08);min-height:190px}
+    .support-banner:before{content:'❤';position:absolute;right:22px;top:18px;font-size:4rem;opacity:.12}
+    .support-banner:after{content:'⚽';position:absolute;left:18px;bottom:8px;font-size:4.5rem;opacity:.09}
+    .support-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .support-box{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+    .market-shell{display:grid;gap:16px}
+    .market-item{position:relative;overflow:hidden;padding:16px 18px;background:linear-gradient(180deg,rgba(18,34,53,.96),rgba(9,18,30,.98))}
+    .market-item:after{content:'';position:absolute;right:-20px;bottom:-25px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.07),rgba(255,255,255,0))}
+    .market-item strong{font-size:1.04rem}
+    .market-badge{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:800;background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.22);color:#baf2cf;margin-bottom:8px}
     
     .macro-grid,.quick-grid,.home-grid,.top-grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
     .macro-tile,.quick-card,.home-card,.top-card{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
@@ -98,8 +125,8 @@
     .section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
     .match-month{margin:18px 0 10px;font-size:1.1rem;font-weight:800;letter-spacing:.02em;color:#f7fbff;text-transform:capitalize}
     .match-date{margin:10px 0 8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);font-size:.98rem;font-weight:800;color:#ffffff;text-transform:capitalize}
-    .top-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
-    .top-table{padding:0;overflow:hidden;border-radius:22px;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .top-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:18px;align-items:start}
+    .top-table{padding:0;overflow:hidden;border-radius:22px;border:1px solid var(--line);box-shadow:var(--shadow);min-width:0}
     .top-table.red{background:linear-gradient(180deg,rgba(134,21,21,.34),rgba(14,17,26,.98))}
     .top-table.white{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(16,19,26,.98))}
     .top-table.green{background:linear-gradient(180deg,rgba(13,113,63,.34),rgba(10,18,26,.98))}
@@ -111,12 +138,22 @@
     .top-mini-table tbody tr:last-child td{border-bottom:0}
     .top-mini-table td:first-child{width:54px;font-weight:800}
     .top-mini-table td:last-child{text-align:right;font-weight:800}
-    .top-mini-table .namecol{font-weight:700}
+    .top-mini-table .namecol{min-width:0}
+    .player-main{display:flex;align-items:center;gap:10px;min-width:0}
+    .shirt-badge{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 10px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);font-size:.84rem;font-weight:800;color:#fff;flex:0 0 auto}
+    .player-stack{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .player-stack strong{display:block;white-space:normal;line-height:1.2}
+    .player-team-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:.88rem}
+    .player-team-line .sep{opacity:.55}
+    .value-pill{display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-weight:900}
+    .top-table.red .value-pill{background:rgba(255,255,255,.1)}
+    .top-table.white .value-pill{background:rgba(255,255,255,.16)}
+    .top-table.green .value-pill{background:rgba(255,255,255,.1)}
     .home-highlight{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
     .home-highlight .feature{min-height:110px}
 
-    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split,.macro-grid,.quick-grid,.hero-home,.top-overview,.home-highlight{grid-template-columns:1fr}}
-    @media (max-width:820px){.topbar{padding:14px}.content{padding:18px}.topnav{justify-content:flex-start}.search{min-width:100%}h1{font-size:2rem}}
+    @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split,.macro-grid,.quick-grid,.hero-home,.top-overview,.home-highlight,.team-directory-hero,.support-wrap,.support-grid,.team-highlight-grid{grid-template-columns:1fr}}
+    @media (max-width:820px){.topbar{padding:14px}.content{padding:18px}.topnav{justify-content:flex-start}.search{min-width:100%}h1{font-size:2rem}.top-mini-table th,.top-mini-table td{padding:11px 10px}.shirt-badge{min-width:34px;height:34px;font-size:.78rem}.value-pill{min-width:64px;padding:7px 10px}}
   </style>
 </head>
 <body>
@@ -133,12 +170,18 @@ const NAV_ITEMS = [
 ];
 
 const CATEGORY_TREE = [
-  { key:'serie-a', label:'Serie A', items:[{ name:'Serie A', code:'serie-a', live:true }] },
+  { key:'serie-a', label:'Serie A', items:[
+    { name:'Serie A', code:'serie-a', live:true },
+    { name:'Coppa Italia', code:'coppa-italia', live:true },
+    { name:'Supercoppa Italiana', code:'supercoppa-italiana', live:false, disabled:true }
+  ] },
   { key:'serie-b', label:'Serie B', items:[{ name:'Serie B', code:'serie-b', live:true }] },
   { key:'serie-c', label:'Serie C', items:[
     { name:'Serie C - Girone A', code:'serie-c-a', live:true },
     { name:'Serie C - Girone B', code:'serie-c-b', live:true },
-    { name:'Serie C - Girone C', code:'serie-c-c', live:true }
+    { name:'Serie C - Girone C', code:'serie-c-c', live:true },
+    { name:'Coppa Italia Serie C', code:'coppa-italia-serie-c', live:false, disabled:true },
+    { name:'Supercoppa Serie C', code:'supercoppa-serie-c', live:false, disabled:true }
   ]},
   { key:'serie-d', label:'Serie D', items:[
     { name:'Serie D - Girone A', code:'serie-d-a', live:true },
@@ -149,15 +192,30 @@ const CATEGORY_TREE = [
     { name:'Serie D - Girone F', code:'serie-d-f', live:true },
     { name:'Serie D - Girone G', code:'serie-d-g', live:true },
     { name:'Serie D - Girone H', code:'serie-d-h', live:true },
-    { name:'Serie D - Girone I', code:'serie-d-i', live:true }
+    { name:'Serie D - Girone I', code:'serie-d-i', live:true },
+    { name:'Coppa Italia Serie D', code:'coppa-italia-serie-d', live:false, disabled:true }
   ]},
   { key:'primavera', label:'Primavera', items:[
     { name:'Primavera 1', code:'primavera-1', live:false, disabled:true },
-    { name:'Primavera 2', code:'primavera-2', live:false, disabled:true }
+    { name:'Primavera 2', code:'primavera-2', live:false, disabled:true },
+    { name:'Coppa Italia Primavera', code:'coppa-italia-primavera', live:false, disabled:true }
   ]},
   { key:'femminile', label:'Femminile', items:[
     { name:'Serie A Femminile', code:'serie-a-women', live:true },
-    { name:'Serie A Cup Women', code:'serie-a-cup-women', live:true }
+    { name:'Serie A Cup Women', code:'serie-a-cup-women', live:true },
+    { name:'Coppa Italia Women', code:'coppa-italia-women', live:false, disabled:true }
+  ]},
+  { key:'italiane-europa', label:'Italiane in Europa', items:[
+    { name:'Champions League', code:'champions-league', live:false, disabled:true },
+    { name:'Europa League', code:'europa-league', live:false, disabled:true },
+    { name:'Conference League', code:'conference-league', live:false, disabled:true }
+  ]},
+  { key:'nazionale', label:'Nazionale Italia', items:[
+    { name:'Italia', code:'italia', live:false, disabled:true },
+    { name:'Italia U21', code:'italia-u21', live:false, disabled:true },
+    { name:'Qualificazioni Mondiali', code:'qualificazioni-mondiali', live:false, disabled:true },
+    { name:'Europei', code:'europei', live:false, disabled:true },
+    { name:'Mondiali', code:'mondiali', live:false, disabled:true }
   ]}
 ];
 
@@ -212,7 +270,8 @@ const EVENT_DETAIL_LABELS = {
 const GENERIC_TRANSLATIONS = {
   'Starting XI':'Formazione titolare','Substitutes':'Panchina','Coach':'Allenatore','Home Team':'Squadra di casa','Away Team':'Squadra ospite',
   'Match Winner':'Vincitore partita','No Goals':'Nessun gol','Both Teams Score':'Gol di entrambe le squadre','Aggiornamento':'Aggiornamento',
-  'Transfer':'Trasferimento','Loan':'Prestito','Free':'Svincolato','N/A':'n.d.'
+  'Transfer':'Trasferimento','Loan':'Prestito','Free':'Svincolato','N/A':'n.d.','Cancelled':'Annullata','Abandoned':'Sospesa','Awarded':'Assegnata',
+  'Postponed':'Rinviata','Suspended':'Sospesa','Time':'Orario','Home':'Casa','Away':'Trasferta','Win':'Vittoria','Draw':'Pareggio','Loss':'Sconfitta'
 };
 function tLabel(value){
   const raw = String(value ?? '').trim();
@@ -378,13 +437,12 @@ function teamsView(){
     return `<div class="content"><div class="card section"><h1 style="font-size:2rem">Squadre</h1><p>Prima seleziona una competizione dal menu laterale. Dopo vedrai la barra di ricerca e la directory completa delle squadre collegate a quella categoria.</p></div></div>`;
   }
   const q = state.teamDirectorySearch.trim().toLowerCase();
-  let teams = uniqueTeams();
-  if(q) teams = teams.filter(t => t.name.toLowerCase().includes(q));
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">Directory squadre</div><h1>Squadre</h1><p>Menu dedicato con barra di ricerca per aprire rapidamente la scheda di una squadra della competizione selezionata.</p><div class="pills"><span class="pill">Ricerca veloce</span><span class="pill">Rosa</span><span class="pill">Infortuni</span><span class="pill">Formazioni</span><span class="pill">Cartellini</span></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Squadre indicizzate</strong><div class="muted small">${uniqueTeams().length}</div></div><div class="row"><strong>Fonte</strong><div class="muted small">Classifica + partite caricate</div></div></div></div></div><div class="card section"><div class="toolbar"><div><h2 style="margin-bottom:4px">Cerca una squadra</h2><div class="muted small">La ricerca lavora sulla competizione attualmente selezionata.</div></div><input class="search" placeholder="Es. Juventus, Palermo, Arezzo..." value="${esc(state.teamDirectorySearch)}" oninput="setTeamDirectorySearch(this.value)" /></div>${teams.length?`<div class="grid grid3">${teams.map(t=>`<div class="directory-card" onclick="openTeam(${t.id},'${esc(String(t.name).replaceAll("'",'\\\''))}')"><strong>${esc(t.name)}</strong><div class="directory-meta">${t.rank ? 'Posizione: '+t.rank : 'Squadra presente nei dati'}</div><div class="directory-meta">${t.points!=null ? 'Punti: '+t.points : 'Clicca per aprire la scheda completa'}</div></div>`).join('')}</div>`:`<div class="notice">Nessuna squadra trovata con questo filtro.</div>`}</div></div>`;
+  const teams = uniqueTeams().filter(t => !q || String(t.name).toLowerCase().includes(q));
+  return `<div class="content"><div class="team-directory-hero"><div class="card hero-main"><div class="muted small">Directory squadre</div><h1>Squadre</h1><p>Una sezione più pulita e più bella per cercare rapidamente una squadra, aprire la scheda completa e passare da rosa, infortuni, cartellini, formazioni e notizie ufficiali.</p><div class="pills"><span class="pill">Ricerca veloce</span><span class="pill">Scheda completa</span><span class="pill">Rosa e infortuni</span><span class="pill">News ufficiali</span></div><div class="team-highlight-grid"><div class="feature"><div><strong>Ricerca immediata</strong><div class="muted small">Filtra la directory in tempo reale sulla competizione selezionata.</div></div></div><div class="feature"><div><strong>Schede più ricche</strong><div class="muted small">Dati squadra raccolti in un'unica esperienza più ordinata.</div></div></div><div class="feature"><div><strong>Navigazione rapida</strong><div class="muted small">Apri direttamente la squadra che vuoi seguire senza passaggi inutili.</div></div></div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Squadre indicizzate</strong><div class="muted small">${uniqueTeams().length}</div></div><div class="row"><strong>Stile</strong><div class="muted small">Directory premium e più leggibile</div></div></div></div></div><div class="card section"><div class="toolbar"><div><h2 style="margin-bottom:4px">Cerca una squadra</h2><div class="muted small">La ricerca lavora sulla competizione attualmente selezionata.</div></div><input class="search" placeholder="Es. Juventus, Palermo, Arezzo..." value="${esc(state.teamDirectorySearch)}" oninput="setTeamDirectorySearch(this.value)" /></div>${teams.length?`<div class="grid grid3">${teams.map(t=>`<div class="directory-card" onclick="openTeam(${t.id},'${String(t.name).replaceAll("'","\'")}')"><strong>${esc(t.name)}</strong><div class="directory-meta">${t.rank ? 'Posizione attuale: '+t.rank : 'Squadra presente nei dati disponibili'}</div><div class="directory-meta">${t.points!=null ? 'Punti: '+t.points : 'Apri la scheda completa della squadra'}</div><div class="directory-kpi"><span>${t.rank ? 'Top '+t.rank : 'Squadra'}</span><span>${t.points!=null ? t.points+' punti' : 'Scheda completa'}</span><span>Apri dettagli</span></div></div>`).join('')}</div>`:`<div class="notice">Nessuna squadra trovata con questo filtro.</div>`}</div></div>`;
 }
 
 function supportView(){
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">Supporta il progetto</div><h1>Donazioni no profit</h1><p>Il progetto nasce dalla passione per il calcio italiano e dalla voglia di creare una piattaforma utile, ordinata e sempre più completa. Le donazioni aiutano a sostenere API, hosting e sviluppo continuo.</p><div class="pills"><span class="pill">No profit</span><span class="pill">Aggiornamenti continui</span><span class="pill">Costi reali</span></div><a class="paypal-btn" href="https://paypal.me/marcoteribia" target="_blank" rel="noopener noreferrer">Dona con PayPal</a></div><div class="card hero-side"><h2>Chi sono</h2><div class="kpi"><div class="row"><strong>Nome</strong><div class="muted small">Gianmarco Teribia</div></div><div class="row"><strong>Nick social</strong><div class="muted small">novantasette</div></div><div class="row"><strong>Missione</strong><div class="muted small">Costruire una web app completa e più pulita sul calcio italiano.</div></div></div></div></div></div>`;
+  return `<div class="content"><div class="support-wrap"><div class="card hero-main"><div class="muted small">Supporta il progetto</div><h1>Donazioni no profit</h1><p>Il progetto nasce dalla passione per il calcio italiano e dalla voglia di creare una piattaforma utile, ordinata e sempre più completa. Le donazioni aiutano a sostenere API, hosting e sviluppo continuo.</p><div class="pills"><span class="pill">No profit</span><span class="pill">Aggiornamenti continui</span><span class="pill">Costi reali</span><span class="pill">Community in crescita</span></div><div class="hero-cta"><a class="paypal-btn" href="https://paypal.me/marcoteribia" target="_blank" rel="noopener noreferrer">Dona con PayPal</a><button class="ghost-btn" onclick="setPage('home')">Torna alla Home</button></div><div class="support-grid" style="margin-top:18px"><div class="support-box"><strong>Perché supportare</strong><div class="directory-meta">Mantieni vivo un progetto dedicato solo al calcio italiano, con dati, news e miglioramenti costanti.</div></div><div class="support-box"><strong>Cosa migliori</strong><div class="directory-meta">Hosting, API, nuove sezioni, rifiniture grafiche e sviluppo continuo del sito.</div></div><div class="support-box"><strong>Visione</strong><div class="directory-meta">Una web app sempre più ordinata, completa e piacevole da usare ogni giorno.</div></div><div class="support-box"><strong>Trasparenza</strong><div class="directory-meta">Supporto volontario, senza obblighi: ogni contributo aiuta davvero il progetto.</div></div></div></div><div class="support-visual"><div class="support-banner"><div class="select-note">Grazie davvero</div><h2 style="font-size:1.6rem;margin:8px 0 10px">Un piccolo gesto può far crescere molto il progetto.</h2><p>Ogni donazione sostiene strumenti, dati e miglioramenti visivi, aiutando Calcio Italiano Live a diventare sempre più forte e curato.</p></div><div class="card hero-side"><h2>Chi sono</h2><div class="kpi"><div class="row"><strong>Nome</strong><div class="muted small">Gianmarco Teribia</div></div><div class="row"><strong>Nick social</strong><div class="muted small">novantasette</div></div><div class="row"><strong>Missione</strong><div class="muted small">Costruire una web app completa e più pulita sul calcio italiano.</div></div></div></div></div></div>`;
 }
 
 function discordView(){
@@ -400,6 +458,17 @@ function rankingCard(item, idx, type){
   return `<div class="ranking-row"><div class="ranking-rank">${idx+1}</div><div><strong>${esc(player.name || 'Giocatore')}</strong><div class="ranking-meta">${esc(team)} • Presenze: ${stats.games?.appearences ?? stats.games?.appearances ?? '—'}</div></div><div><strong>${esc(val)}${suffix}</strong></div></div>`;
 }
 
+function rankingValue(type, stats){
+  if(type==='scorers') return stats.goals?.total ?? 0;
+  if(type==='assists') return stats.goals?.assists ?? 0;
+  const raw = Number.parseFloat(String(stats.games?.rating || '').replace(',', '.'));
+  return Number.isFinite(raw) ? raw.toFixed(2) : '—';
+}
+
+function rankingLabel(type){
+  return type==='scorers' ? 'Gol' : type==='assists' ? 'Assist' : 'Valut.';
+}
+
 function rankingView(type){
   const list = state.rankings[type] || [];
   const loading = state.rankingsLoading[type];
@@ -407,7 +476,14 @@ function rankingView(type){
   if(loading) return `<div class="directory-meta">Caricamento classifica...</div>`;
   if(!state.competition) return `<div class="directory-meta">Seleziona prima una competizione dal menu laterale.</div>`;
   if(!list.length) return `<div class="directory-meta">Nessun dato disponibile.</div>${note?`<div class="footer-note">${esc(note)}</div>`:''}`;
-  return `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>Valore</th></tr></thead><tbody>${list.slice(0,10).map((item,idx)=>{ const player = item.player || {}; const stats = item.statistics?.[0] || {}; const team = stats.team?.name || 'Squadra'; const val = type==='scorers' ? (stats.goals?.total ?? 0) : type==='assists' ? (stats.goals?.assists ?? 0) : (stats.games?.rating || '—'); return `<tr><td>${idx+1}</td><td class="namecol"><div>${esc(player.name || 'Giocatore')}</div><div class="ranking-meta">${esc(team)}</div></td><td>${esc(val)}</td></tr>`; }).join('')}</tbody></table>${note?`<div class="footer-note">${esc(note)}</div>`:''}`;
+  return `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>${rankingLabel(type)}</th></tr></thead><tbody>${list.slice(0,10).map((item,idx)=>{ 
+    const player = item.player || {}; 
+    const stats = item.statistics?.[0] || {}; 
+    const team = stats.team?.name || 'Squadra'; 
+    const value = rankingValue(type, stats);
+    const appearances = stats.games?.appearences ?? stats.games?.appearances ?? '—';
+    return `<tr><td>${idx+1}</td><td class="namecol"><div class="player-main"><div class="player-stack"><strong>${esc(player.name || 'Giocatore')}</strong><div class="player-team-line"><span>${esc(team)}</span><span class="sep">•</span><span>Presenze: ${esc(appearances)}</span></div></div></div></td><td><span class="value-pill">${esc(value)}</span></td></tr>`; 
+  }).join('')}</tbody></table>${note?`<div class="footer-note">${esc(note)}</div>`:''}`;
 }
 
 function loadAllRankings(){
@@ -415,7 +491,7 @@ function loadAllRankings(){
 }
 
 function topView(){
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Una sola pagina, più pulita e più forte visivamente: tre tabelle affiancate per <strong>Marcatori</strong>, <strong>Assist</strong> e <strong>Valutazioni</strong>, con colori ispirati all'Italia.</p><div class="top-overview"><div class="top-table red"><div class="top-table-head"><em>Rosso</em><h2 style="margin-bottom:6px">Marcatori</h2><div class="muted small">Chi segna di più nella competizione selezionata.</div></div>${rankingView('scorers')}</div><div class="top-table white"><div class="top-table-head"><em>Bianco</em><h2 style="margin-bottom:6px">Assist</h2><div class="muted small">Chi crea più occasioni e rifinisce meglio.</div></div>${rankingView('assists')}</div><div class="top-table green"><div class="top-table-head"><em>Verde</em><h2 style="margin-bottom:6px">Valutazioni</h2><div class="muted small">I rendimenti medi più alti disponibili nei dati.</div></div>${rankingView('ratings')}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Vista</strong><div class="muted small">Classifiche unificate</div></div><div class="row"><strong>Stile</strong><div class="muted small">Ispirazione tricolore italiana</div></div></div></div></div></div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Una sola pagina, più pulita e più forte visivamente: tre tabelle affiancate per <strong>Marcatori</strong>, <strong>Assist</strong> e <strong>Valutazioni</strong>, con valori ben visibili, squadra e presenze in una sola vista più ordinata.</p><div class="top-overview"><div class="top-table red"><div class="top-table-head"><em>Rosso</em><h2 style="margin-bottom:6px">Marcatori</h2><div class="muted small">Gol realizzati nella competizione selezionata.</div></div>${rankingView('scorers')}</div><div class="top-table white"><div class="top-table-head"><em>Bianco</em><h2 style="margin-bottom:6px">Assist</h2><div class="muted small">Passaggi decisivi e rifinitura migliore.</div></div>${rankingView('assists')}</div><div class="top-table green"><div class="top-table-head"><em>Verde</em><h2 style="margin-bottom:6px">Valutazioni</h2><div class="muted small">Media voto più alta disponibile nei dati.</div></div>${rankingView('ratings')}</div></div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Vista</strong><div class="muted small">Top unificata più ampia</div></div><div class="row"><strong>Dettagli</strong><div class="muted small">Squadra, presenze e valori più leggibili</div></div></div></div></div></div>`;
 }
 
 function marketView(){
@@ -424,7 +500,7 @@ function marketView(){
     'Puoi collegare una fonte custom o un backend dedicato alle indiscrezioni.',
     'La sezione ufficiali resta invece alimentata dai trasferimenti confermati.'
   ];
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. La parte ufficiale usa i dati transfer disponibili; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / transfers</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Pronto per integrazione custom</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(tLabel(t.update?.type || 'Trasferimento'))} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. Gli ufficiali mostrano solo gli aggiornamenti più recenti, così la pagina resta davvero pulita e utile; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / ultimi movimenti</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Separati dagli ufficiali per una lettura più chiara</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale recente disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><span class="market-badge">Ufficiale</span><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(tLabel(t.update?.type || 'Trasferimento'))} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
 }
 
 function mainView(){

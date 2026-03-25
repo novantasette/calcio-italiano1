@@ -27,3 +27,10 @@ Deploy:
 2. aggiungi NEWS_API_KEY su Vercel se vuoi la versione news più stabile
 3. commit su GitHub
 4. redeploy su Vercel
+
+
+Note competizioni:
+- Ho aggiunto nel menu tutte le macro-categorie richieste.
+- Le voci senza ID collegato in API-Football sono segnate come 'in arrivo' per evitare errori nel frontend.
+- API-Football copre varie competizioni italiane come Campionato Primavera 1/2, Coppa Italia Primavera, Coppa Italia Serie C, Coppa Italia Serie D e Coppa Italia Women; per collegarle davvero servono gli ID di lega ricavati dal dashboard / endpoint leagues.
+- Le categorie Europee e Nazionale Italia sono predisposte nel menu ma lasciate disattivate finché non viene definita la mappatura corretta.
