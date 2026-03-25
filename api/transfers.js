@@ -36,20 +36,15 @@ const allTransfers = transferLists
   .sort((a, b) => new Date(b.update?.date || 0) - new Date(a.update?.date || 0));
 
 const recentCutoff = new Date();
-recentCutoff.setMonth(recentCutoff.getMonth() - 6);
+recentCutoff.setFullYear(recentCutoff.getFullYear() - 1);
 let transfers = allTransfers.filter(item => new Date(item.update?.date || 0) >= recentCutoff);
-if (!transfers.length) {
-  const fallbackCutoff = new Date();
-  fallbackCutoff.setFullYear(fallbackCutoff.getFullYear() - 1);
-  transfers = allTransfers.filter(item => new Date(item.update?.date || 0) >= fallbackCutoff);
-}
 transfers = transfers.slice(0, 18);
 
     return res.status(200).json({
       transfers,
       note: EURO_COMP_CODES.has(comp)
-        ? 'Mercato ufficiale limitato alle squadre italiane presenti nella competizione europea e ai movimenti più recenti.'
-        : 'Mercato ufficiale limitato ai movimenti più recenti, con fallback massimo all’ultimo anno se i dati più freschi non sono disponibili.'
+        ? 'Mercato ufficiale limitato alle squadre italiane presenti nella competizione europea e ai movimenti realmente recenti dell’ultimo anno.'
+        : 'Mercato ufficiale limitato ai movimenti realmente recenti dell’ultimo anno, così non vengono mostrati trasferimenti troppo vecchi.'
     });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore nel proxy transfers.' });
