@@ -1,7 +1,12 @@
 const MAP = {
   "serie-a": { league: 135, season: 2025 },
   "serie-b": { league: 136, season: 2025 },
-  "coppa-italia": { league: 137, season: 2025 }
+  "coppa-italia": { league: 137, season: 2025 },
+  "serie-c-a": { league: 138, season: 2025 },
+  "serie-c-b": { league: 942, season: 2025 },
+  "serie-c-c": { league: 943, season: 2025 },
+  "serie-d-a": { league: 426, season: 2025 },
+  "serie-d-b": { league: 427, season: 2025 }
 };
 
 async function fetchJson(url, key) {

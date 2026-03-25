@@ -1,7 +1,12 @@
 const MAP = {
   "serie-a": { league: 135, season: 2025 },
   "serie-b": { league: 136, season: 2025 },
-  "coppa-italia": { league: 137, season: 2025 }
+  "coppa-italia": { league: 137, season: 2025 },
+  "serie-c-a": { league: 138, season: 2025 },
+  "serie-c-b": { league: 942, season: 2025 },
+  "serie-c-c": { league: 943, season: 2025 },
+  "serie-d-a": { league: 426, season: 2025 },
+  "serie-d-b": { league: 427, season: 2025 }
 };
 
 async function fetchJson(url, key) {
@@ -24,7 +29,6 @@ export default async function handler(req, res) {
       fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&next=50`, key),
       fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&last=50`, key)
     ]);
-
     const merged = [...(lastData.response || []), ...(nextData.response || [])];
     const uniq = [];
     const seen = new Set();

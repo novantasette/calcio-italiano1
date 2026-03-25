@@ -1,4 +1,4 @@
-Calcio Italiano Live V7
+Calcio Italiano Live V8
 
 Sostituisci:
 - index.html
@@ -10,7 +10,9 @@ Sostituisci:
 
 Poi commit e redeploy su Vercel.
 
-Migliorie:
-- tutte le partite in ordine decrescente
-- pagine squadra in ordine decrescente
-- struttura pronta per collegare altre categorie appena definisci i loro ID nel dashboard API-Football
+Aggiunge live per:
+- Serie C Girone A = 138
+- Serie C Girone B = 942
+- Serie C Girone C = 943
+- Serie D Girone A = 426
+- Serie D Girone B = 427
