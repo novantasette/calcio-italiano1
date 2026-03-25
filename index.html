@@ -20,8 +20,10 @@
     .brand-inline h1{margin:0;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .brand-inline small{display:block;color:var(--muted);margin-top:2px}
     .topnav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .topnav button{background:#0d1929;border:1px solid var(--line);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.18s}
-    .topnav button:hover,.topnav button.active{background:#15263e;border-color:#355376;transform:translateY(-1px)}
+    .topnav button{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,#0d1929,#0a1422);border:1px solid var(--line);color:var(--text);padding:10px 14px;border-radius:14px;cursor:pointer;transition:.18s;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+    .topnav button:hover,.topnav button.active{background:linear-gradient(180deg,#18304b,#12253b);border-color:#4f7db1;transform:translateY(-1px);box-shadow:0 10px 20px rgba(0,0,0,.18)}
+    .nav-ico{width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:rgba(255,255,255,.07);font-size:.88rem}
+    .topnav button.active .nav-ico{background:rgba(125,182,255,.18)}
     .app{display:grid;grid-template-columns:310px 1fr;min-height:calc(100vh - 77px)}
     .sidebar{padding:18px 14px 24px;border-right:1px solid var(--line);background:linear-gradient(180deg,rgba(10,18,30,.92),rgba(8,14,24,.98));position:sticky;top:77px;height:calc(100vh - 77px);overflow:auto}
     .sidebar h3{margin:0 0 12px;font-size:.82rem;color:#7fd6ff;letter-spacing:.16em;text-transform:uppercase}
@@ -74,12 +76,21 @@
     .news-card a{color:#dff0ff;text-decoration:none}
     .news-card a:hover{text-decoration:underline}
     
-    .macro-grid,.quick-grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
-    .macro-tile,.quick-card{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
-    .macro-tile strong,.quick-card strong{display:block;margin-bottom:6px}
+    .macro-grid,.quick-grid,.home-grid,.top-grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
+    .macro-tile,.quick-card,.home-card,.top-card{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+    .macro-tile strong,.quick-card strong,.home-card strong,.top-card strong{display:block;margin-bottom:6px}
     .macro-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     .macro-actions button{padding:9px 12px;border-radius:12px;border:1px solid var(--line-strong);background:#0c192b;color:var(--text);cursor:pointer}
     .hero-home{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:18px}
+    .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .hero-cta button{padding:11px 14px;border-radius:14px;border:1px solid var(--line-strong);background:#10233a;color:var(--text);cursor:pointer;font-weight:700}
+    .home-grid{margin-top:16px}
+    .home-card{min-height:132px}
+    .home-card em,.top-card em{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);font-style:normal;font-size:.82rem;color:#d6e6fb;border:1px solid rgba(255,255,255,.06);margin-bottom:10px}
+    .top-grid{margin-top:16px}
+    .top-card{cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+    .top-card:hover,.top-card.active{border-color:#4f7db1;transform:translateY(-1px);background:linear-gradient(180deg,rgba(25,49,77,.85),rgba(10,20,34,.98))}
+    .top-card:after{content:'';position:absolute;right:-18px;bottom:-18px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(62,124,184,.25),transparent 70%)}
     .hero-glow{position:relative;overflow:hidden}
     .hero-glow:before{content:"";position:absolute;inset:auto -15% -35% auto;width:260px;height:260px;background:radial-gradient(circle,#2ea8ff55 0%,transparent 68%);pointer-events:none}
     .empty-shell{display:grid;gap:16px}
@@ -95,12 +106,12 @@
 <script>
 const DISCORD_URL = '#';
 const NAV_ITEMS = [
-  { key:'home', label:'Home' },
-  { key:'teams', label:'Squadre' },
-  { key:'top', label:'Top' },
-  { key:'market', label:'Mercato' },
-  { key:'support', label:'Supporta il progetto' },
-  { key:'discord', label:'Discord' }
+  { key:'home', label:'Home', icon:'⌂' },
+  { key:'teams', label:'Squadre', icon:'⚽' },
+  { key:'top', label:'Top', icon:'★' },
+  { key:'market', label:'Mercato', icon:'⇄' },
+  { key:'support', label:'Supporta il progetto', icon:'❤' },
+  { key:'discord', label:'Discord', icon:'💬' }
 ];
 
 const CATEGORY_TREE = [
@@ -161,15 +172,20 @@ const STAT_LABELS = {
   'Passes %':'Precisione passaggi','expected_goals':'Gol attesi','Goals Prevented':'Gol evitati','Penalty Kicks':'Rigori',
   'Big Chances Created':'Grandi occasioni create','Big Chances Missed':'Grandi occasioni sprecate','Substitutions':'Sostituzioni',
   'Attacks':'Attacchi','Dangerous Attacks':'Attacchi pericolosi','Hit Woodwork':'Legni colpiti','Free Kicks':'Calci di punizione',
-  'Throwins':'Rimesse laterali','Goal Attempts':'Tentativi di gol','Goals':'Gol'
+  'Throwins':'Rimesse laterali','Goal Attempts':'Tentativi di gol','Goals':'Gol','Saves':'Parate','Duels Won':'Duelli vinti',
+  'Dribble Attempts':'Dribbling tentati','Dribble Success':'Dribbling riusciti','Aerials Won':'Duelli aerei vinti','Crosses':'Cross',
+  'Accurate Crosses':'Cross precisi','Interceptions':'Intercetti','Tackles':'Contrasti','Clearances':'Spazzate difensive',
+  'Penalty won':'Rigori conquistati','Penalty scored':'Rigori segnati','Penalty missed':'Rigori sbagliati'
 };
 const EVENT_TYPE_LABELS = {
-  Goal:'Gol',Card:'Cartellino',subst:'Sostituzione',Var:'VAR'
+  Goal:'Gol',Card:'Cartellino',subst:'Sostituzione',Substitution:'Sostituzione',Var:'VAR',Foul:'Fallo',
+  substs:'Sostituzione',Penalty:'Rigore'
 };
 const EVENT_DETAIL_LABELS = {
   'Normal Goal':'Gol','Own Goal':'Autogol','Penalty':'Rigore','Missed Penalty':'Rigore sbagliato','Yellow Card':'Ammonizione',
   'Red Card':'Espulsione','Substitution':'Sostituzione','subst':'Sostituzione','Var':'VAR','Goal Disallowed':'Gol annullato',
-  'Penalty Shootout':'Rigori','Card Upgrade':'Cartellino modificato'
+  'Penalty Shootout':'Rigori','Card Upgrade':'Cartellino modificato','Substitution 1':'Sostituzione','Substitution 2':'Sostituzione',
+  'Injury':'Infortunio','Tactical Substitution':'Sostituzione tattica','Foul':'Fallo','Handball':'Fallo di mano'
 };
 
 function renderStat(stats,name,labelOverride){
@@ -193,7 +209,7 @@ function uniqueTeams(){
 }
 
 function topbar(){
-  return `<div class="topbar"><div class="brand-inline"><div class="logo" aria-hidden="true"><img src="logo.svg" alt="Logo Calcio Italiano Live" /></div><div><h1>Calcio Italiano Live</h1><small>Risultati, classifiche e approfondimenti</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')">${item.label}</button>`).join('')}</div></div>`;
+  return `<div class="topbar"><div class="brand-inline"><div class="logo" aria-hidden="true"><img src="logo.svg" alt="Logo Calcio Italiano Live" /></div><div><h1>Calcio Italiano Live</h1><small>Risultati, classifiche e approfondimenti</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')"><span class="nav-ico">${item.icon}</span><span>${item.label}</span></button>`).join('')}</div></div>`;
 }
 
 function sidebar(){
@@ -205,15 +221,19 @@ function toolbar(){
 }
 
 function homeHero(){
-  if(!state.competition){
-    return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano Live</div><h1>Una home più pulita, prima scegli tu cosa seguire.</h1><p>All'apertura del sito resti su una vera pagina Home: nessuna classifica o lista partite mostrata finché non selezioni una competizione. Da qui puoi entrare subito nel campionato che ti interessa oppure aprire le sezioni Squadre, Top e Mercato.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Competizioni italiane</span><span class="pill">Squadre</span><span class="pill">Top</span><span class="pill">Mercato</span></div><div class="macro-actions"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Vai a Top</button><button onclick="setPage('market')">Apri Mercato</button></div></div><div class="card hero-side"><h2>Consiglio UX</h2><div class="hero-list"><div class="feature"><span>Step 1</span><strong>Scegli la competizione dal menu laterale</strong></div><div class="feature"><span>Step 2</span><strong>Visualizza partite, classifica e dettagli</strong></div><div class="feature"><span>Step 3</span><strong>Esplora Squadre, Top e Mercato</strong></div></div></div></div>`;
-  }
-  return `<div class="hero"><div class="card hero-main"><div class="muted small">${esc(currentMacro())} • ${esc(state.competition)}</div><h1>${esc(state.competition)}</h1><p>Vista principale della competizione con partite, classifica, schede squadra e statistiche tradotte in italiano. Puoi cambiare categoria dal menu laterale in qualsiasi momento.</p><div class="pills"><span class="pill">Live</span><span class="pill">Classifica</span><span class="pill">Dettagli partita</span><span class="pill">Squadre</span></div></div><div class="card hero-side"><h2>Stato rapido</h2><div class="kpi"><div class="row"><strong>Competizione attiva</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Partite caricate</strong><div class="muted small">${state.fixtures.length || '—'}</div></div><div class="row"><strong>Ordine</strong><div class="muted small">Più recenti in alto</div></div></div></div></div>`;
+  const selected = state.competition ? `<div class="feature"><span>Competizione selezionata</span><strong>${esc(state.competition)}</strong></div>` : `<div class="feature"><span>Competizione selezionata</span><strong>Nessuna ancora scelta</strong></div>`;
+  return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano Live</div><h1>Segui il calcio italiano con una home davvero ordinata.</h1><p>La Home ora resta sempre una vera pagina iniziale: pulita, elegante e senza classifiche o partite mostrate in automatico. Sei tu a scegliere quando entrare in una competizione, aprire una squadra oppure consultare le classifiche Top.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Navigazione più chiara</span><span class="pill">Competizioni italiane</span><span class="pill">News ufficiali squadra</span></div><div class="hero-cta"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Apri Top</button><button onclick="setPage('market')">Apri Mercato</button>${state.competition?`<button onclick="goCompetition()">Vai a ${esc(state.competition)}</button>`:''}</div></div><div class="card hero-side"><h2>Accesso rapido</h2><div class="hero-list">${selected}<div class="feature"><span>Come iniziare</span><strong>Apri una macro-categoria a sinistra</strong></div><div class="feature"><span>Esperienza</span><strong>Home separata dal contenuto live</strong></div><div class="feature"><span>Struttura</span><strong>Squadre, Top, Mercato e Supporto</strong></div></div></div></div>`;
 }
 
 function homeLanding(){
-  return `<div class="empty-shell"><div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Scegli una competizione</h2><div class="muted small">Le macro-categorie nel menu laterale aprono le relative sottocategorie. Qui sotto trovi anche una selezione rapida.</div></div><div class="muted small">Nessun contenuto caricato finché non selezioni una competizione.</div></div><div class="macro-grid">${CATEGORY_TREE.map(group=>`<div class="macro-tile"><strong>${group.label}</strong><div class="directory-meta">${group.items.filter(i=>!i.disabled).length} sottocategorie disponibili</div><div class="macro-actions">${group.items.map(item=>item.disabled?`<button disabled style="opacity:.55;cursor:not-allowed">${item.name}</button>`:`<button onclick="selectCompetition('${item.name}')">${item.name}</button>`).join('')}</div></div>`).join('')}</div></div><div class="quick-grid"><div class="card quick-card"><strong>Home</strong><div class="directory-meta">Pagina iniziale leggera e ordinata, senza dati mostrati subito.</div></div><div class="card quick-card"><strong>Top</strong><div class="directory-meta">Un solo menu con marcatori, assist e valutazioni.</div></div><div class="card quick-card"><strong>Squadre</strong><div class="directory-meta">Ricerca squadra, rosa, infortuni, cartellini, formazioni e movimenti ufficiali.</div></div></div>`;
+  return `<div class="empty-shell"><div class="card section"><div class="section-head"><div><h2 style="margin-bottom:4px">Scegli una competizione</h2><div class="muted small">Apri una macro-categoria dal menu laterale oppure usa i pulsanti rapidi qui sotto.</div></div><div class="muted small">La Home non carica dati finché non entri in una competizione.</div></div><div class="macro-grid">${CATEGORY_TREE.map(group=>`<div class="macro-tile"><strong>${group.label}</strong><div class="directory-meta">${group.items.filter(i=>!i.disabled).length} sottocategorie disponibili</div><div class="macro-actions">${group.items.map(item=>item.disabled?`<button disabled style="opacity:.55;cursor:not-allowed">${item.name}</button>`:`<button onclick="selectCompetition('${item.name}')">${item.name}</button>`).join('')}</div></div>`).join('')}</div></div><div class="home-grid"><div class="card home-card"><em>Home</em><strong>Ingresso ordinato</strong><div class="directory-meta">Niente contenuti automatici all'apertura: la navigazione parte da una base pulita.</div></div><div class="card home-card"><em>Squadre</em><strong>Ricerca veloce</strong><div class="directory-meta">Apri una squadra e consulta rosa, infortuni, cartellini, formazioni e notizie ufficiali.</div></div><div class="card home-card"><em>Top</em><strong>Un solo menu, tre classifiche</strong><div class="directory-meta">Marcatori, assist e valutazioni raccolti in un'interfaccia più bella e coerente.</div></div></div></div>`;
 }
+
+function competitionView(){
+  return `<div class="content">${state.competition ? `<div class="hero"><div class="card hero-main"><div class="muted small">${esc(currentMacro())} • ${esc(state.competition)}</div><h1>${esc(state.competition)}</h1><p>Vista principale della competizione con partite, classifica, schede squadra e statistiche tradotte in italiano. Puoi cambiare categoria dal menu laterale in qualsiasi momento oppure tornare alla Home pulita dal menu alto.</p><div class="pills"><span class="pill">Live</span><span class="pill">Classifica</span><span class="pill">Dettagli partita</span><span class="pill">Schede squadra</span></div></div><div class="card hero-side"><h2>Stato rapido</h2><div class="kpi"><div class="row"><strong>Competizione attiva</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Partite caricate</strong><div class="muted small">${state.fixtures.length || '—'}</div></div><div class="row"><strong>Ordine</strong><div class="muted small">Più recenti in alto</div></div></div></div></div><div class="grid grid2">${matchesList()}${standingsCard()}</div>` : homeLanding()}</div>`;
+}
+
+function homeView(){ return `<div class="content">${homeHero()}${homeLanding()}</div>`; }
 
 function matchesList(){
   let list = sortByDateDesc(state.fixtures || []);
@@ -309,7 +329,7 @@ function rankingCard(item, idx, type){
   const team = stats.team?.name || 'Squadra';
   const val = type==='scorers' ? (stats.goals?.total ?? 0) : type==='assists' ? (stats.goals?.assists ?? 0) : (stats.games?.rating || '—');
   const suffix = type==='ratings' ? '' : (type==='assists' ? ' assist' : ' gol');
-  return `<div class="ranking-row"><div class="ranking-rank">${idx+1}</div><div><strong>${esc(player.name || 'Giocatore')}</strong><div class="ranking-meta">${esc(team)} • Presenze: ${stats.games?.appearences ?? '—'}</div></div><div><strong>${esc(val)}${suffix}</strong></div></div>`;
+  return `<div class="ranking-row"><div class="ranking-rank">${idx+1}</div><div><strong>${esc(player.name || 'Giocatore')}</strong><div class="ranking-meta">${esc(team)} • Presenze: ${stats.games?.appearences ?? stats.games?.appearances ?? '—'}</div></div><div><strong>${esc(val)}${suffix}</strong></div></div>`;
 }
 
 function rankingView(type, title, description){
@@ -323,8 +343,14 @@ function topView(){
   const type = state.topTab || 'scorers';
   const title = type==='scorers' ? 'Top Marcatori' : type==='assists' ? 'Top Assist' : 'Top Valutazioni';
   const description = type==='scorers' ? 'Classifica marcatori della competizione selezionata.' : type==='assists' ? 'Classifica assist della competizione selezionata.' : 'Giocatori con le migliori valutazioni medie rilevate nei dati disponibili.';
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Menu unico per raccogliere le classifiche individuali più utili. Il nome "Top" qui funziona bene perché è rapido, chiaro e pulito nella navigazione.</p><div class="subnav">${['scorers','assists','ratings'].map(key=>`<button class="${(state.topTab||'scorers')===key?'active':''}" onclick="setTopTab('${key}')">${key==='scorers'?'Marcatori':key==='assists'?'Assist':'Valutazioni'}</button>`).join('')}</div><div class="footer-note" style="margin-top:12px">${description}</div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Macro-categoria</strong><div class="muted small">${esc(currentMacro())}</div></div><div class="row"><strong>Fonte</strong><div class="muted small">API-Football</div></div></div></div></div>${rankingView(type, title, description)}</div>`;
+  const cards = [
+    { key:'scorers', chip:'Gol', title:'Marcatori', desc:'Per vedere subito chi decide le partite.' },
+    { key:'assists', chip:'Assist', title:'Assist', desc:'Per premiare chi crea occasioni e rifinisce.' },
+    { key:'ratings', chip:'Voti', title:'Valutazioni', desc:'Per evidenziare il rendimento medio più alto.' }
+  ];
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Top</h1><p>Un unico menu elegante per raccogliere le classifiche individuali più utili. Visivamente è più pulito, più moderno e più facile da navigare.</p><div class="top-grid">${cards.map(card=>`<div class="top-card ${(state.topTab||'scorers')===card.key?'active':''}" onclick="setTopTab('${card.key}')"><em>${card.chip}</em><strong>${card.title}</strong><div class="directory-meta">${card.desc}</div></div>`).join('')}</div><div class="footer-note" style="margin-top:14px">${description}</div></div><div class="card hero-side"><h2>Contesto</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition || 'Da selezionare')}</div></div><div class="row"><strong>Macro-categoria</strong><div class="muted small">${esc(currentMacro())}</div></div><div class="row"><strong>Vista attiva</strong><div class="muted small">${title}</div></div></div></div></div>${rankingView(type, title, description)}</div>`;
 }
+
 
 function marketView(){
   const rumorsDemo = [
@@ -338,6 +364,7 @@ function marketView(){
 function mainView(){
   if(state.selected) return detailView();
   if(state.selectedTeam) return teamView();
+  if(state.page==='competition') return competitionView();
   if(state.page==='teams') return teamsView();
   if(state.page==='support') return supportView();
   if(state.page==='discord') return discordView();
@@ -359,13 +386,17 @@ function setPage(page){
   if(page==='top') loadRanking(state.topTab || 'scorers');
   if(page==='market') loadTransfers();
 }
+function goCompetition(){
+  if(!state.competition) return;
+  state.page='competition';
+  render();
+  if(!state.fixtures.length && !state.loading) loadCompetitionData();
+}
 function selectCompetition(name){
   const group = CATEGORY_TREE.find(g => g.items.some(i => i.name===name));
-  state.openMacro = group?.key || state.openMacro; state.page='home'; state.competition=name; state.filter='all'; state.search='';
+  state.openMacro = group?.key || state.openMacro; state.page='competition'; state.competition=name; state.filter='all'; state.search='';
   state.fixtures=[]; state.selected=null; state.selectedTeam=null; state.teamData=null; state.meta=null; state.standings=[]; state.teamDirectorySearch=''; state.teamTab='overview';
   loadCompetitionData();
-  if(state.page==='top') loadRanking(state.topTab || 'scorers');
-  if(state.page==='market' && state.marketTab==='official') loadTransfers();
 }
 async function loadFixturesOnly(){
   if(!currentCode()) { state.fixtures=[]; state.meta=null; return; }
