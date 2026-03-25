@@ -675,7 +675,6 @@ function formatValueEuro(v){
 }
 
 function valueView(){
-  loadValues();
   const rows = state.values.map((item, idx) => {
     const player = item.player || {};
     const stats = item.statistics?.[0] || {};
@@ -690,7 +689,8 @@ function valueView(){
       : !state.values.length
         ? `<div class="notice">Nessun valore stimato disponibile per questa competizione.</div>`
         : `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>Valore</th></tr></thead><tbody>${rows}</tbody></table>`;
-  return `<div class="content"><div class="hero"><div class="card hero-main" style="grid-column:1 / -1"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Valore</h1><p>Una pagina dedicata alla stima economica automatica dei giocatori della competizione selezionata, basata su età, presenze, rendimento, gol, assist e peso competitivo.</p><div class="top-overview value-wide" style="grid-template-columns:minmax(0,1fr)"><div class="top-table green" style="width:100%"><div class="top-table-head"><h2 style="margin-bottom:6px">Valori stimati</h2><div class="muted small">Una lettura rapida e comprensibile, senza dipendere da fonti esterne non ufficiali.</div></div>${body}${state.valuesNote ? `<div class="footer-note">${esc(state.valuesNote)}</div>` : ''}</div></div></div></div></div>`;
+  const noteBlock = state.valuesNote ? `<div class="footer-note" style="margin-top:14px">${esc(state.valuesNote)}</div>` : '';
+  return `<div class="content"><div class="hero"><div class="card hero-main" style="grid-column:1 / -1"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Valore</h1><p>Una pagina dedicata alla stima economica automatica dei giocatori della competizione selezionata, basata su età, presenze, rendimento, gol, assist e peso competitivo.</p><div class="top-overview value-wide" style="grid-template-columns:minmax(0,1fr)"><div class="top-table green" style="width:100%;min-width:0"><div class="top-table-head"><h2 style="margin-bottom:6px">Valori stimati</h2><div class="muted small">Una lettura rapida e comprensibile, senza dipendere da fonti esterne non ufficiali.</div></div><div style="width:100%;overflow:auto">${body}</div>${noteBlock}</div></div></div></div></div>`;
 }
 
 function marketView(){
@@ -733,7 +733,7 @@ function setPage(page){
   state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render(); syncHistory();
   if(page==='top') loadAllRankings();
   if(page==='market') loadTransfers();
-  if(page==='value') loadValues();
+  if(page==='value'){ state.values=[]; state.valuesNote=''; loadValues(); }
 }
 function goCompetition(){
   if(!state.competition) return;
@@ -810,7 +810,7 @@ async function loadRanking(type){
   state.rankingsLoading[type]=false; render();
 }
 async function loadValues(){
-  if(!currentCode()) { state.values=[]; state.valuesNote='Seleziona prima una competizione dal menu laterale.'; render(); return; }
+  if(!currentCode()) { state.values=[]; state.valuesLoading=false; state.valuesNote='Seleziona prima una competizione dal menu laterale.'; render(); return; }
   if(state.valuesLoading) return;
   state.valuesLoading = true; render();
   try{
