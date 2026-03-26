@@ -742,14 +742,28 @@ function toggleMacro(key){ state.openMacro = state.openMacro === key ? '' : key;
 function setMarketTab(v){ state.marketTab=v; render(); if(v==='official') loadTransfers(); }
 function setTopTab(v){ state.topTab=v; state.page='top'; render(); loadAllRankings(); }
 function showSoon(){
-  const app=document.getElementById('app');
   let note=document.getElementById('soon-toast');
   if(!note){
     note=document.createElement('div');
     note.id='soon-toast';
-    note.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 18px;border-radius:999px;background:rgba(12,23,39,.96);border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 42px rgba(0,0,0,.28);z-index:99999;color:#fff;font-weight:700';
+    note.style.position='fixed';
+    note.style.top='20px';
+    note.style.left='50%';
+    note.style.transform='translateX(-50%)';
+    note.style.background='#c62828';
+    note.style.color='#fff';
+    note.style.padding='14px 30px';
+    note.style.fontSize='22px';
+    note.style.fontWeight='800';
+    note.style.borderRadius='12px';
+    note.style.zIndex='9999';
+    note.textContent='PRESTO';
     document.body.appendChild(note);
   }
+  note.style.display='block';
+  clearTimeout(state._soonTimer);
+  state._soonTimer=setTimeout(()=>{note.style.display='none';},2500);
+}
   note.textContent='Presto';
   note.style.display='block';
   clearTimeout(window.__soonTimer);
@@ -920,5 +934,5 @@ syncHistory(true);
 render();
 
 </script>
-<script src="presto-banner.js"></script></body>
+</body>
 </html>
