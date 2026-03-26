@@ -25,12 +25,21 @@
     .brand-inline h1{margin:0;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .brand-inline small{display:block;color:var(--muted);margin-top:2px}
     .topnav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .cursor-glow,.cursor-core{position:fixed;left:0;top:0;pointer-events:none;z-index:9999;mix-blend-mode:screen;opacity:0;transition:opacity .18s ease}
+    .cursor-glow{width:34px;height:34px;border-radius:50%;filter:blur(10px);background:radial-gradient(circle,#1fbf75 0%,#ffffff 45%,#d95454 78%,transparent 100%);transform:translate(-50%,-50%)}
+    .cursor-core{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.75);transform:translate(-50%,-50%)}
+    body.cursor-on .cursor-glow,body.cursor-on .cursor-core{opacity:1}
+    .topbar-actions{display:flex;align-items:center;gap:10px}
+    .hamburger,.sidebar-toggle{display:none;align-items:center;justify-content:center;width:46px;height:46px;border-radius:14px;border:1px solid var(--line);background:linear-gradient(180deg,#0d1929,#0a1422);color:var(--text);cursor:pointer}
     .topnav button{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,#0d1929,#0a1422);border:1px solid var(--line);color:var(--text);padding:10px 14px;border-radius:14px;cursor:pointer;transition:.18s;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
     .topnav button:hover,.topnav button.active{background:linear-gradient(180deg,#18304b,#12253b);border-color:#4f7db1;transform:translateY(-1px);box-shadow:0 10px 20px rgba(0,0,0,.18)}
+    .topnav button.market-disabled{opacity:.72}
     .nav-ico{width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:rgba(255,255,255,.07);font-size:.88rem}
     .topnav button.active .nav-ico{background:rgba(125,182,255,.18)}
     .app{display:grid;grid-template-columns:310px 1fr;min-height:calc(100vh - 77px)}
     .sidebar{padding:18px 14px 24px;border-right:1px solid var(--line);background:linear-gradient(180deg,rgba(10,18,30,.92),rgba(8,14,24,.98));position:sticky;top:77px;height:calc(100vh - 77px);overflow:auto}
+    .mobile-sidebar-head{display:none;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .mobile-sidebar-head button{border:1px solid var(--line);background:#10233a;color:var(--text);border-radius:12px;padding:8px 12px;cursor:pointer}
     .sidebar h3{margin:0 0 12px;font-size:.82rem;color:#7fd6ff;letter-spacing:.16em;text-transform:uppercase}
     .macro{margin-bottom:10px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);overflow:hidden}
     .macro button.head{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:transparent;border:0;color:var(--text);font-weight:700;cursor:pointer}
@@ -184,7 +193,24 @@
     .home-highlight .feature{min-height:110px}
 
     @media (max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero,.grid2,.grid3,.grid4,.split,.macro-grid,.quick-grid,.hero-home,.top-overview,.home-highlight,.team-directory-hero,.support-wrap,.support-grid,.team-highlight-grid{grid-template-columns:1fr}}
-    @media (max-width:820px){.topbar{padding:14px}.content{padding:18px}.topnav{justify-content:flex-start}.search{min-width:100%}h1{font-size:2rem}.top-mini-table th,.top-mini-table td{padding:11px 10px}.shirt-badge{min-width:34px;height:34px;font-size:.78rem}.value-pill{min-width:64px;padding:7px 10px}}
+    @media (max-width:920px){
+      .topbar{padding:12px 14px;align-items:flex-start}
+      .topbar-actions{margin-left:auto}
+      .hamburger,.sidebar-toggle{display:inline-flex}
+      .topnav{display:none;position:absolute;right:14px;top:72px;flex-direction:column;align-items:stretch;min-width:240px;padding:10px;background:rgba(8,16,27,.98);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+      body.mobile-nav-open .topnav{display:flex}
+      .topnav button{width:100%;justify-content:flex-start}
+      .app{display:block}
+      .sidebar{display:none;position:fixed;left:0;top:77px;bottom:0;width:min(86vw,340px);z-index:45;box-shadow:var(--shadow)}
+      body.mobile-sidebar-open .sidebar{display:block}
+      .mobile-sidebar-head{display:flex}
+      body.mobile-sidebar-open{overflow:hidden}
+      .content{padding:16px}
+      .brand-inline h1{font-size:1rem}
+      .brand-inline small{font-size:.9rem;white-space:normal;display:none}
+    }
+    @media (max-width:820px){.search{min-width:100%}h1{font-size:2rem}.top-mini-table th,.top-mini-table td{padding:11px 10px}.shirt-badge{min-width:34px;height:34px;font-size:.78rem}.value-pill{min-width:64px;padding:7px 10px}}
+    @media (hover:none),(pointer:coarse){.cursor-glow,.cursor-core{display:none!important}}
   </style>
 </head>
 <body>
@@ -416,11 +442,11 @@ function uniqueTeams(){
 }
 
 function topbar(){
-  return `<div class="topbar"><div class="brand-inline" onclick="setPage('home')"><div class="logo" aria-label="Home" role="button" tabindex="0" onclick="event.stopPropagation();setPage('home')" onkeydown="if(event.key==='Enter'||event.key===' '){setPage('home')}"><img src="logo.svg" alt="Logo Calcio Italiano" /></div><div><h1>Calcio Italiano</h1><small>Risultati, classifiche e approfondimenti sul calcio italiano</small></div></div><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''}" onclick="setPage('${item.key}')"><span class="nav-ico">${item.icon}</span><span>${item.label}</span></button>`).join('')}</div></div>`;
+  return `<div class="topbar"><div class="brand-inline" onclick="setPage('home')"><div class="logo" aria-label="Home" role="button" tabindex="0" onclick="event.stopPropagation();setPage('home')" onkeydown="if(event.key==='Enter'||event.key===' '){setPage('home')}"><img src="logo.svg" alt="Logo Calcio Italiano" /></div><div><h1>Calcio Italiano</h1><small>Risultati, classifiche e approfondimenti sul calcio italiano</small></div></div><div class="topbar-actions"><button class="sidebar-toggle" onclick="toggleMobileSidebar()" aria-label="Apri campionati">☰</button><button class="hamburger" onclick="toggleMobileNav()" aria-label="Apri menu">☰</button><div class="topnav">${NAV_ITEMS.map(item=>`<button class="${state.page===item.key?'active':''} ${item.key==='market'?'market-disabled':''}" onclick="${item.key==='market'?`showSoon()`:`setPage('${item.key}')`}"><span class="nav-ico">${item.icon}</span><span>${item.label}</span></button>`).join('')}</div></div></div>`;
 }
 
 function sidebar(){
-  return `<aside class="sidebar"><h3>Campionati</h3><div class="footer-note" style="margin:0 0 14px">Apri una macro-categoria e scegli la sottocategoria da visualizzare. Ho già collegato tutte quelle ricavate dagli screen con ID v3 del 2025; le altre restano pronte come prossimi inserimenti.</div>${CATEGORY_TREE.map(group=>`<div class="macro ${state.openMacro===group.key?'open':''}"><button class="head" onclick="toggleMacro('${group.key}')"><span>${group.label}</span><span>${state.openMacro===group.key?'−':'+'}</span></button><div class="subs">${group.items.map(item=>`<button class="${item.disabled?'disabled':''} ${state.competition===item.name?'active':''}" onclick="${item.disabled?'return false':`selectCompetition('${item.name}')`}">${item.name}${item.disabled?' <span class="muted">(in arrivo)</span>':''}</button>`).join('')}</div></div>`).join('')}</aside>`;
+  return `<aside class="sidebar"><div class="mobile-sidebar-head"><h3 style="margin:0">Campionati</h3><button onclick="toggleMobileSidebar(false)">Chiudi</button></div><h3>Campionati</h3><div class="footer-note" style="margin:0 0 14px">Apri una macro-categoria e scegli la sottocategoria da visualizzare. Ho già collegato tutte quelle ricavate dagli screen con ID v3 del 2025; le altre restano pronte come prossimi inserimenti.</div>${CATEGORY_TREE.map(group=>`<div class="macro ${state.openMacro===group.key?'open':''}"><button class="head" onclick="toggleMacro('${group.key}')"><span>${group.label}</span><span>${state.openMacro===group.key?'−':'+'}</span></button><div class="subs">${group.items.map(item=>`<button class="${item.disabled?'disabled':''} ${state.competition===item.name?'active':''}" onclick="${item.disabled?'return false':`selectCompetition('${item.name}')`}">${item.name}${item.disabled?' <span class="muted">(in arrivo)</span>':''}</button>`).join('')}</div></div>`).join('')}</aside>`;
 }
 
 function toolbar(){
@@ -429,7 +455,7 @@ function toolbar(){
 
 function homeHero(){
   const selected = state.competition ? `<div class="feature"><span>Ultima competizione aperta</span><strong>${esc(state.competition)}</strong></div>` : `<div class="feature"><span>Ultima competizione aperta</span><strong>Nessuna ancora scelta</strong></div>`;
-  return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano</div><h1>Una Home pulita, elegante e pronta a guidare davvero la navigazione.</h1><p>Quando entri nel sito resti sempre sulla Home iniziale, senza classifiche o partite caricate automaticamente. Da qui puoi scegliere con calma una competizione, aprire la sezione Squadre, consultare la pagina Top o il Mercato.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Navigazione più chiara</span><span class="pill">Date ben visibili</span><span class="pill">Statistiche tradotte</span></div><div class="hero-cta"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Apri Top</button><button onclick="setPage('value')">Apri Valore</button><button onclick="setPage('market')">Apri Mercato</button></div><div class="home-highlight"><div class="feature"><div><strong>Competizioni</strong><div class="muted small">Apri una macro-categoria a sinistra e scegli il campionato che vuoi seguire.</div></div></div><div class="feature"><div><strong>Top unificata</strong><div class="muted small">Marcatori, assist e valutazioni nella stessa pagina, più ordinati e immediati.</div></div></div><div class="feature"><div><strong>Vista partite</strong><div class="muted small">Live e prossime più pulite, con date in evidenza e partite finite separate.</div></div></div></div></div><div class="card hero-side"><h2>Accesso rapido</h2><div class="hero-list">${selected}<div class="feature"><span>Come iniziare</span><strong>Scegli una competizione dal menu laterale</strong></div><div class="feature"><span>Esperienza</span><strong>Home sempre separata dai contenuti live</strong></div><div class="feature"><span>Struttura</span><strong>Squadre, Top, Mercato e Supporto</strong></div></div></div></div>`;
+  return `<div class="hero-home"><div class="card hero-main hero-glow"><div class="select-note">Benvenuto su Calcio Italiano</div><h1>Una Home pulita, elegante e pronta a guidare davvero la navigazione.</h1><p>Quando entri nel sito resti sempre sulla Home iniziale, senza classifiche o partite caricate automaticamente. Da qui puoi scegliere con calma una competizione, aprire la sezione Squadre, consultare la pagina Top o, presto, le prossime novità dedicate al mercato.</p><div class="pills"><span class="pill">Home pulita</span><span class="pill">Navigazione più chiara</span><span class="pill">Date ben visibili</span><span class="pill">Statistiche tradotte</span></div><div class="hero-cta"><button onclick="setPage('teams')">Apri Squadre</button><button onclick="setPage('top')">Apri Top</button><button onclick="setPage('value')">Apri Valore</button><button onclick="showSoon()">Mercato (presto)</button></div><div class="home-highlight"><div class="feature"><div><strong>Competizioni</strong><div class="muted small">Apri una macro-categoria a sinistra e scegli il campionato che vuoi seguire.</div></div></div><div class="feature"><div><strong>Top unificata</strong><div class="muted small">Marcatori, assist e valutazioni nella stessa pagina, più ordinati e immediati.</div></div></div><div class="feature"><div><strong>Vista partite</strong><div class="muted small">Live e prossime più pulite, con date in evidenza e partite finite separate.</div></div></div></div></div><div class="card hero-side"><h2>Accesso rapido</h2><div class="hero-list">${selected}<div class="feature"><span>Come iniziare</span><strong>Scegli una competizione dal menu laterale</strong></div><div class="feature"><span>Esperienza</span><strong>Home sempre separata dai contenuti live</strong></div><div class="feature"><span>Struttura</span><strong>Squadre, Top, Valore, Supporto e novità in arrivo</strong></div></div></div></div>`;
 }
 
 function homeLanding(){
@@ -690,16 +716,11 @@ function valueView(){
         ? `<div class="notice">Nessun valore stimato disponibile per questa competizione.</div>`
         : `<table class="top-mini-table"><thead><tr><th>#</th><th>Giocatore</th><th>Valore</th></tr></thead><tbody>${rows}</tbody></table>`;
   const noteBlock = state.valuesNote ? `<div class="footer-note" style="margin-top:14px">${esc(state.valuesNote)}</div>` : '';
-  return `<div class="content"><div class="hero"><div class="card hero-main" style="grid-column:1 / -1"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Valore</h1><p>Una pagina dedicata alla stima economica automatica dei giocatori della competizione selezionata, basata su età, presenze, rendimento, gol, assist e peso competitivo.</p><div class="top-overview value-wide" style="grid-template-columns:minmax(0,1fr)"><div class="top-table green" style="width:100%;min-width:0"><div class="top-table-head"><h2 style="margin-bottom:6px">Valori stimati</h2><div class="muted small">Una lettura rapida e comprensibile, senza dipendere da fonti esterne non ufficiali.</div></div><div style="width:100%;overflow:auto">${body}</div>${noteBlock}</div></div></div></div></div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main" style="grid-column:1 / -1"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Valore</h1><p>Una pagina dedicata alla stima economica automatica dei giocatori della competizione selezionata, basata su età, presenze, rendimento, gol, assist e peso competitivo.</p><div class="top-overview value-wide" style="grid-template-columns:minmax(0,1fr)"><div class="top-table green" style="width:100%;min-width:0"><div class="top-table-head"><h2 style="margin-bottom:6px">Valori stimati</h2><div class="muted small">Una lettura rapida e comprensibile, basata sui dati più utili disponibili nella competizione.</div></div><div style="width:100%;overflow:auto">${body}</div>${noteBlock}</div></div></div></div></div>`;
 }
 
 function marketView(){
-  const rumorsDemo = [
-    'Slot UI pronto per integrare feed esterno dedicato ai rumors.',
-    'Puoi collegare una fonte custom o un backend dedicato alle indiscrezioni.',
-    'La sezione ufficiali resta invece alimentata dai trasferimenti confermati.'
-  ];
-  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">${esc(state.competition || 'Nessuna competizione selezionata')}</div><h1>Mercato</h1><p>Sezione separata in ufficiali e rumors. Gli ufficiali mostrano solo gli aggiornamenti più recenti, così la pagina resta davvero pulita e utile; la parte rumors resta predisposta per una futura fonte dedicata.</p><div class="subnav"><button class="${state.marketTab==='official'?'active':''}" onclick="setMarketTab('official')">Ufficiali</button><button class="${state.marketTab==='rumors'?'active':''}" onclick="setMarketTab('rumors')">Rumors</button></div></div><div class="card hero-side"><h2>Vista rapida</h2><div class="kpi"><div class="row"><strong>Competizione</strong><div class="muted small">${esc(state.competition)}</div></div><div class="row"><strong>Fonte ufficiali</strong><div class="muted small">API-Football / ultimi movimenti</div></div><div class="row"><strong>Rumors</strong><div class="muted small">Separati dagli ufficiali per una lettura più chiara</div></div></div></div></div>${state.marketTab==='official'?`<div class="card section">${!state.competition?`<div class="notice">Seleziona prima una competizione dal menu laterale.</div>`:state.transfersLoading?`<div class="notice">Caricamento movimenti ufficiali...</div>`:!state.transfers.length?`<div class="notice">Nessun trasferimento ufficiale recente disponibile per questa competizione.</div>`:`<div class="list">${state.transfers.map(t=>`<div class="market-item"><span class="market-badge">Ufficiale</span><strong>${esc(t.player?.name || 'Giocatore')}</strong><div class="market-meta">${esc(t.teams?.out?.name || '—')} → ${esc(t.teams?.in?.name || '—')}</div><div class="market-meta">Tipo: ${esc(tLabel(t.update?.type || 'Trasferimento'))} • Data: ${t.update?.date ? localDate(t.update.date) : 'n.d.'}</div></div>`).join('')}</div>`}${state.transfersNote?`<div class="footer-note">${esc(state.transfersNote)}</div>`:''}</div>`:`<div class="card section"><div class="list">${rumorsDemo.map(text=>`<div class="market-item">${esc(text)}</div>`).join('')}</div></div>`}</div>`;
+  return `<div class="content"><div class="hero"><div class="card hero-main"><div class="muted small">Sezione in preparazione</div><h1>Mercato</h1><p>La sezione mercato verrà ripensata più avanti con una fonte dati più affidabile e aggiornata. Per ora abbiamo scelto di tenerla in standby, così il sito resta pulito e coerente.</p><div class="hero-cta"><button class="ghost-btn" onclick="showSoon()">Presto</button><button class="ghost-btn" onclick="setPage('home')">Torna alla Home</button></div></div><div class="card hero-side"><h2>Stato</h2><div class="kpi"><div class="row"><strong>Mercato</strong><div class="muted small">In pausa temporanea</div></div><div class="row"><strong>Motivo</strong><div class="muted small">Vogliamo dati recenti e davvero affidabili</div></div><div class="row"><strong>Quando</strong><div class="muted small">Tornerà online in un prossimo aggiornamento</div></div></div></div></div><div class="card notice">Presto: questa sezione tornerà con una fonte mercato migliore e più aggiornata.</div></div>`;
 }
 
 function mainView(){
@@ -723,6 +744,31 @@ function setTeamTab(v){ state.teamTab=v; render(); syncHistory(true); }
 function toggleMacro(key){ state.openMacro = state.openMacro === key ? '' : key; render(); syncHistory(true); }
 function setMarketTab(v){ state.marketTab=v; render(); if(v==='official') loadTransfers(); }
 function setTopTab(v){ state.topTab=v; state.page='top'; render(); loadAllRankings(); }
+function showSoon(){
+  const app=document.getElementById('app');
+  let note=document.getElementById('soon-toast');
+  if(!note){
+    note=document.createElement('div');
+    note.id='soon-toast';
+    note.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 18px;border-radius:999px;background:rgba(12,23,39,.96);border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 42px rgba(0,0,0,.28);z-index:99999;color:#fff;font-weight:700';
+    document.body.appendChild(note);
+  }
+  note.textContent='Presto';
+  note.style.display='block';
+  clearTimeout(window.__soonTimer);
+  window.__soonTimer=setTimeout(()=>{ if(note) note.style.display='none'; },1600);
+}
+function toggleMobileNav(force){
+  const on = typeof force==='boolean' ? force : !document.body.classList.contains('mobile-nav-open');
+  document.body.classList.toggle('mobile-nav-open', on);
+  if(on) document.body.classList.remove('mobile-sidebar-open');
+}
+function toggleMobileSidebar(force){
+  const on = typeof force==='boolean' ? force : !document.body.classList.contains('mobile-sidebar-open');
+  document.body.classList.toggle('mobile-sidebar-open', on);
+  if(on) document.body.classList.remove('mobile-nav-open');
+}
+
 function resetToHome(){
   state.page='home'; state.competition=''; state.filter='all'; state.search=''; state.fixtures=[]; state.loading=false; state.error='';
   state.selected=null; state.meta=null; state.standings=[]; state.standingsMeta=null; state.standingsLoading=false; state.selectedTeam=null; state.teamData=null; state.teamLoading=false;
@@ -732,7 +778,7 @@ function setPage(page){
   if(page==='home'){ resetToHome(); render(); syncHistory(); return; }
   state.page=page; state.selected=null; state.selectedTeam=null; state.teamDirectorySearch=''; render(); syncHistory();
   if(page==='top') loadAllRankings();
-  if(page==='market') loadTransfers();
+  if(page==='market') { showSoon(); state.page='home'; render(); syncHistory(); return; }
   if(page==='value'){ state.values=[]; state.valuesNote=''; loadValues(); }
 }
 function goCompetition(){
@@ -754,6 +800,7 @@ function selectCompetition(name){
     return;
   }
   state.page='competition';
+  if(window.innerWidth<=920) document.body.classList.remove('mobile-sidebar-open');
   syncHistory();
   loadCompetitionData();
 }
@@ -860,6 +907,32 @@ window.addEventListener('popstate', (event) => {
   render();
   if(state.page==='competition' && state.competition && !state.fixtures.length && !state.loading) loadCompetitionData();
 });
+
+
+function initCursor(){
+  if(window.matchMedia('(hover:none),(pointer:coarse)').matches) return;
+  const glow=document.createElement('div');
+  glow.className='cursor-glow';
+  const core=document.createElement('div');
+  core.className='cursor-core';
+  document.body.appendChild(glow);
+  document.body.appendChild(core);
+  document.body.classList.add('cursor-on');
+  window.addEventListener('mousemove', e=>{
+    glow.style.left=core.style.left=e.clientX+'px';
+    glow.style.top=core.style.top=e.clientY+'px';
+  });
+}
+
+document.addEventListener('click', e=>{
+  if(window.innerWidth>920) return;
+  if(!e.target.closest('.topnav,.hamburger')) document.body.classList.remove('mobile-nav-open');
+  if(!e.target.closest('.sidebar,.sidebar-toggle')) document.body.classList.remove('mobile-sidebar-open');
+});
+window.addEventListener('resize', ()=>{
+  if(window.innerWidth>920) document.body.classList.remove('mobile-nav-open','mobile-sidebar-open');
+});
+initCursor();
 
 syncHistory(true);
 render();

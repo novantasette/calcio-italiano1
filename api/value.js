@@ -44,18 +44,30 @@ export default async function handler(req, res) {
   if (!cfg) return res.status(400).json({ error: 'Competizione non supportata in questa versione.' });
 
   try {
-    const pagesToFetch = 3;
-    const responses = [];
     let italianTeamIds = null;
     if (EURO_COMP_CODES.has(comp)) italianTeamIds = await getItalianTeamIdsForCompetition(cfg, key);
-    for (let page = 1; page <= pagesToFetch; page += 1) {
-      const data = await fetchJson(`https://v3.football.api-sports.io/players?league=${cfg.league}&season=${cfg.season}&page=${page}`, key);
-      responses.push(...(data.response || []));
-      const totalPages = data.paging?.total || pagesToFetch;
-      if (page >= totalPages) break;
+
+    const [scorersData, assistsData, playersPage] = await Promise.all([
+      fetchJson(`https://v3.football.api-sports.io/players/topscorers?league=${cfg.league}&season=${cfg.season}`, key).catch(() => ({ response: [] })),
+      fetchJson(`https://v3.football.api-sports.io/players/topassists?league=${cfg.league}&season=${cfg.season}`, key).catch(() => ({ response: [] })),
+      fetchJson(`https://v3.football.api-sports.io/players?league=${cfg.league}&season=${cfg.season}&page=1`, key).catch(() => ({ response: [] }))
+    ]);
+
+    const merged = new Map();
+    for (const item of [...(scorersData.response || []), ...(assistsData.response || []), ...(playersPage.response || [])]) {
+      const id = String(item?.player?.id || item?.player?.name || Math.random());
+      if (!merged.has(id)) merged.set(id, item);
+      else {
+        const prev = merged.get(id);
+        const prevStats = prev.statistics?.[0] || {};
+        const newStats = item.statistics?.[0] || {};
+        const prevApps = Number(prevStats.games?.appearences ?? prevStats.games?.appearances ?? 0);
+        const newApps = Number(newStats.games?.appearences ?? newStats.games?.appearances ?? 0);
+        if (newApps > prevApps) merged.set(id, item);
+      }
     }
 
-    let players = responses.filter(item => (item.statistics?.[0]?.games?.appearences ?? item.statistics?.[0]?.games?.appearances ?? 0) >= 3);
+    let players = Array.from(merged.values()).filter(item => (item.statistics?.[0]?.games?.appearences ?? item.statistics?.[0]?.games?.appearances ?? 0) >= 1);
     if (italianTeamIds) players = players.filter(item => italianTeamIds.has(Number(item?.statistics?.[0]?.team?.id)));
 
     players = players

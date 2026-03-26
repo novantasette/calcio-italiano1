@@ -25,8 +25,9 @@ export default async function handler(req, res) {
     );
 
     const now = new Date();
-    const recentCutoff = new Date(now);
-    recentCutoff.setMonth(recentCutoff.getMonth() - 18);
+    const rollingCutoff = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 365);
+    const seasonStart = new Date(Date.UTC(Number(cfg.season), 5, 1, 0, 0, 0));
+    const recentCutoff = seasonStart > rollingCutoff ? seasonStart : rollingCutoff;
 
     const transfers = transferLists
       .flatMap(data => data.response || [])
@@ -36,8 +37,11 @@ export default async function handler(req, res) {
         teams: transfer.teams
       })))
       .filter(item => {
-        const when = item.update?.date ? new Date(item.update.date) : null;
-        return when && !Number.isNaN(when.getTime()) && when >= recentCutoff;
+        const rawDate = item.update?.date ? String(item.update.date) : '';
+        const when = rawDate ? new Date(rawDate) : null;
+        if (!when || Number.isNaN(when.getTime())) return false;
+        if (when < recentCutoff) return false;
+        return true;
       })
       .sort((a, b) => new Date(b.update?.date || 0) - new Date(a.update?.date || 0))
       .filter((item, idx, arr) => idx === arr.findIndex(other =>
@@ -50,8 +54,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       transfers,
       note: EURO_COMP_CODES.has(comp)
-        ? 'Movimenti ordinati dal più recente al meno recente e limitati alle italiane presenti nella competizione europea.'
-        : 'Movimenti ordinati dal più recente al meno recente e limitati alle operazioni davvero recenti.'
+        ? 'Movimenti ordinati dal più recente al meno recente e limitati agli ultimi 12 mesi per le italiane presenti nella competizione europea.'
+        : 'Movimenti ordinati dal più recente al meno recente e limitati agli ultimi 12 mesi.'
     });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore nel proxy transfers.' });
