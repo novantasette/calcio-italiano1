@@ -746,28 +746,13 @@ function showSoon(){
   if(!note){
     note=document.createElement('div');
     note.id='soon-toast';
-    note.style.position='fixed';
-    note.style.top='20px';
-    note.style.left='50%';
-    note.style.transform='translateX(-50%)';
-    note.style.background='#c62828';
-    note.style.color='#fff';
-    note.style.padding='14px 30px';
-    note.style.fontSize='22px';
-    note.style.fontWeight='800';
-    note.style.borderRadius='12px';
-    note.style.zIndex='9999';
-    note.textContent='PRESTO';
+    note.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);padding:14px 28px;border-radius:14px;background:#c62828;border:1px solid rgba(255,255,255,.16);z-index:99999;color:#fff;font-weight:900;font-size:22px;letter-spacing:.04em';
     document.body.appendChild(note);
   }
-  note.style.display='block';
-  clearTimeout(state._soonTimer);
-  state._soonTimer=setTimeout(()=>{note.style.display='none';},2500);
-}
-  note.textContent='Presto';
+  note.textContent='PRESTO';
   note.style.display='block';
   clearTimeout(window.__soonTimer);
-  window.__soonTimer=setTimeout(()=>{ if(note) note.style.display='none'; },1600);
+  window.__soonTimer=setTimeout(()=>{ if(note) note.style.display='none'; },2200);
 }
 function toggleMobileNav(force){
   const on = typeof force==='boolean' ? force : !document.body.classList.contains('mobile-nav-open');
