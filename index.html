@@ -491,13 +491,13 @@ function matchesList(){
   const liveList = sortByDateDesc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='live'));
   const nextListFull = sortByDateAsc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='scheduled'));
   const nextList = nextListFull.slice(0,10);
-  const finishedList = sortByDateDesc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='finished'));
+  const finishedList = sortByDateDesc(allFixtures.filter(m=>statusClass(m.fixture.status.short)==='finished')).slice(0,10);
 
   let list = [];
   let note = 'Live in evidenza + massimo 10 prossime partite. Le partite finite restano separate nella tab Finite.';
   if(state.filter==='live'){ list = liveList; note = 'Solo partite live.'; }
   else if(state.filter==='next'){ list = nextList; note = 'Mostrate solo le prossime 10 partite, ordinate dalla più vicina.'; }
-  else if(state.filter==='finished'){ list = finishedList; note = 'Partite finite, separate per mantenere la vista più pulita.'; }
+  else if(state.filter==='finished'){ list = finishedList; note = 'Mostrate solo le 10 partite finite più recenti, così eventi e statistiche restano più utili e leggibili.'; }
   else { list = [...liveList, ...nextList]; }
 
   if(state.search.trim()){
@@ -877,8 +877,19 @@ async function loadTransfers(){
 }
 async function openMatch(id){
   state.selectedTeam=null; state.teamData=null; state.selected={loading:true}; render(); syncHistory();
-  try{ const res=await fetch(`/api/match?id=${id}`); const data=await res.json(); if(!res.ok) throw new Error(data.error || 'Errore nel dettaglio partita'); state.selected={data}; }
-  catch(err){ state.selected={error:err.message || 'Errore nel dettaglio partita'}; }
+  try{
+    const res=await fetch(`/api/match?id=${id}`);
+    const data=await res.json().catch(()=> ({}));
+    if(!res.ok) throw new Error(data.error || 'Errore nel dettaglio partita');
+    state.selected={data};
+  } catch(err){
+    const fallbackMatch = (state.fixtures || []).find(m => String(m?.fixture?.id) === String(id));
+    if(fallbackMatch){
+      state.selected={data:{match:fallbackMatch,events:[],stats:[],lineups:[]}};
+    } else {
+      state.selected={error:err.message || 'Errore nel dettaglio partita'};
+    }
+  }
   render(); syncHistory(true);
 }
 function closeMatch(){ state.selected=null; render(); syncHistory(true); }
