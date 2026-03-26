@@ -209,6 +209,25 @@
     @media (max-width:820px){.search{min-width:100%}h1{font-size:2rem}.top-mini-table th,.top-mini-table td{padding:11px 10px}.shirt-badge{min-width:34px;height:34px;font-size:.78rem}.value-pill{min-width:64px;padding:7px 10px}}
     @media (hover:none),(pointer:coarse){body{cursor:auto} a,button,[role='button'],.linklike,.match,.directory-card,.subs button,.top-card,.brand-inline,.tabs button,.mini-tabs button,.subnav button,.hamburger,.sidebar-toggle{cursor:pointer}}
   </style>
+
+<style id="event-visual-upgrade">
+.event-icon{display:inline-flex;align-items:center;justify-content:center;min-width:1.2em}
+.event-goal{animation:goalPulse 1.15s ease-in-out infinite}
+@keyframes goalPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.event-sub-line,.event-card-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sub-out{color:#ff6b6b;font-weight:800}
+.sub-in{color:#51cf66;font-weight:800}
+.sub-sep{opacity:.9;font-weight:800}
+.card-badge,.goal-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:800}
+.card-badge.yellow{background:rgba(255,212,59,.14);color:#ffd43b;border:1px solid rgba(255,212,59,.28)}
+.card-badge.red{background:rgba(255,107,107,.14);color:#ff8787;border:1px solid rgba(255,107,107,.28)}
+.goal-badge{background:rgba(81,207,102,.14);color:#8ce99a;border:1px solid rgba(81,207,102,.28)}
+.goal-assist{color:#c5f6fa;font-weight:700}
+.event-yellow-line span:last-child{color:#ffe066;font-weight:700}
+.event-red-line span:last-child{color:#ffa8a8;font-weight:700}
+.event-goal-line span:last-child{font-weight:700}
+</style>
+
 </head>
 <body>
 <div id="app"></div>

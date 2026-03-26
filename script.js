@@ -135,7 +135,17 @@ const standingRowClass = rank => {
 };
 function statusClass(short){ if(['1H','2H','HT','ET','BT','P','LIVE','INT'].includes(short)) return 'live'; if(['FT','AET','PEN'].includes(short)) return 'finished'; return 'scheduled'; }
 function statusLabel(m){ const s=m.fixture.status.short, e=m.fixture.status.elapsed; if(['1H','2H'].includes(s)) return `<span class="live-dot"></span>Partita in corso ${s==='1H'?'1T':'2T'}${e?' • '+e+"'":''}`; if(s==='HT') return '<span class="live-dot"></span>Intervallo'; if(['ET','BT','P','LIVE','INT'].includes(s)) return '<span class="live-dot"></span>Partita in corso'; if(['FT','AET','PEN'].includes(s)) return 'Partita finita'; return 'Non iniziata'; }
-function iconForEvent(type,detail){ const t=`${type||''} ${detail||''}`.toLowerCase(); if(t.includes('goal')) return '⚽'; if(t.includes('card')) return detail==='Red Card'?'🟥':'🟨'; if(t.includes('subst')) return '🔁'; if(t.includes('var')) return '🖥️'; if(t.includes('penalty')) return '🎯'; return '•'; }
+function iconForEvent(type,detail){
+  const t=`${type||''} ${detail||''}`.toLowerCase();
+  if(t.includes('goal')) return '<span class="event-icon event-goal" aria-hidden="true">⚽</span>';
+  if(t.includes('card')) return detail==='Red Card'
+    ? '<span class="event-icon event-red" aria-hidden="true">🟥</span>'
+    : '<span class="event-icon event-yellow" aria-hidden="true">🟨</span>';
+  if(t.includes('subst')) return '<span class="event-icon event-subst" aria-hidden="true">🔁</span>';
+  if(t.includes('var')) return '<span class="event-icon event-var" aria-hidden="true">🖥️</span>';
+  if(t.includes('penalty')) return '<span class="event-icon event-penalty" aria-hidden="true">🎯</span>';
+  return '<span class="event-icon" aria-hidden="true">•</span>';
+}
 
 function teamLink(name,id){ return `<span class="linklike" onclick="openTeam(${id},'${esc(String(name).replaceAll("'",'\''))}')">${esc(name)}</span>`; }
 function safeJsonState(){
@@ -360,7 +370,28 @@ function detailView(){
   const interestingStats=['Shots on Goal','Shots off Goal','Total Shots','Blocked Shots','Shots insidebox','Shots outsidebox','Ball Possession','Corner Kicks','Offsides','Fouls','Yellow Cards','Red Cards','Goalkeeper Saves','Total passes','Passes accurate','Passes %','expected_goals','Goals Prevented'];
   const statsHtml = `<div class="card section"><h2>Statistiche</h2>${stats.length>=2?interestingStats.map(s=>renderStat(stats,s)).join(''):`<div class="muted small">Statistiche non disponibili.</div>`}</div>`;
   const lineupsHtml = `<div class="card section"><h2>Formazioni</h2>${lineups.length?`<div class="split">${lineups.map(lineupCard).join('')}</div>`:`<div class="muted small">Formazioni non disponibili.</div>`}</div>`;
-  return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="grid grid2"><div><div class="card section"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${teamLink(m.teams.home.name,m.teams.home.id)} vs ${teamLink(m.teams.away.name,m.teams.away.id)}</div><div class="muted small">${esc(m.fixture.venue?.name||'Stadio non disponibile')}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div><div class="card section"><h2>Eventi</h2>${events.length?events.map(e=>`<div class="event"><div class="rowflex"><strong>${e.time.elapsed?e.time.elapsed+"'":'-'} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div><div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div><div class="muted small">${esc(tLabel(e.detail) || tLabel(e.type) || e.type || '')}${e.detail && !EVENT_DETAIL_LABELS[e.detail] ? ' • '+esc(tLabel(e.detail)):''}</div></div>`).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
+  return `<div class="content"><a class="back" onclick="closeMatch()">← Torna alla competizione</a><div class="grid grid2"><div><div class="card section"><div class="rowflex"><div><div class="muted small">${esc(m.league.name)} • ${localDate(m.fixture.date)}</div><div class="title">${teamLink(m.teams.home.name,m.teams.home.id)} vs ${teamLink(m.teams.away.name,m.teams.away.id)}</div><div class="muted small">${esc(m.fixture.venue?.name||'Stadio non disponibile')}</div></div><div class="badges"><span class="badge ${statusClass(m.fixture.status.short)}">${statusLabel(m)}</span><span class="scorebadge">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</span></div></div></div><div class="card section"><h2>Eventi</h2>${events.length?events.map(e=>{
+      const label = esc(tLabel(e.detail) || tLabel(e.type) || e.type || '');
+      const extra = e.detail && !EVENT_DETAIL_LABELS[e.detail] ? ' • '+esc(tLabel(e.detail)) : '';
+      const tm = e.time.elapsed?e.time.elapsed+"'" : '-';
+      const detailLower = String(e.detail||'').toLowerCase();
+      const typeLower = String(e.type||'').toLowerCase();
+      let body = '';
+      if(typeLower.includes('subst') || detailLower.includes('substitution')){
+        const outName = esc(e.player?.name || '');
+        const inName = esc(e.assist?.name || '');
+        body = `<div class="event-sub-line" style="margin-top:8px"><span class="sub-out">⬅ ${outName}</span><span class="sub-sep">→</span><span class="sub-in">${inName} ➜</span></div>`;
+      } else if(detailLower.includes('yellow card')){
+        body = `<div class="event-card-line event-yellow-line" style="margin-top:8px"><span class="card-badge yellow">🟨 Ammonizione</span><span>${esc(e.player?.name||'')}</span></div>`;
+      } else if(detailLower.includes('red card')){
+        body = `<div class="event-card-line event-red-line" style="margin-top:8px"><span class="card-badge red">🟥 Espulsione</span><span>${esc(e.player?.name||'')}</span></div>`;
+      } else if(typeLower.includes('goal') || detailLower.includes('goal')){
+        body = `<div class="event-card-line event-goal-line" style="margin-top:8px"><span class="goal-badge">⚽ Gol</span><span>${esc(e.player?.name||'')}</span>${e.assist?.name?`<span class="goal-assist">👟 ${esc(e.assist.name)}</span>`:''}</div>`;
+      } else {
+        body = `<div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div>`;
+      }
+      return `<div class="event"><div class="rowflex"><strong>${tm} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div>${body}<div class="muted small">${label}${extra}</div></div>`;
+    }).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
 }
 
 function teamTabOverview(d){
