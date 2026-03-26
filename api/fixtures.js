@@ -28,11 +28,8 @@ export default async function handler(req, res) {
       const seasonData = await fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&team=${teamId}`, key);
       merged = seasonData.response || [];
     } else {
-      const [nextData, lastData] = await Promise.all([
-        fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&next=50`, key),
-        fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}&last=120`, key)
-      ]);
-      merged = [...(lastData.response || []), ...(nextData.response || [])];
+      const seasonData = await fetchJson(`https://v3.football.api-sports.io/fixtures?league=${cfg.league}&season=${cfg.season}`, key);
+      merged = seasonData.response || [];
     }
 
     const uniq = [];
