@@ -386,9 +386,9 @@ function detailView(){
       } else if(detailLower.includes('red card')){
         body = `<div class="event-card-line event-red-line" style="margin-top:8px"><span class="card-badge red">🟥 Espulsione</span><span>${esc(e.player?.name||'')}</span></div>`;
       } else if(typeLower.includes('goal') || detailLower.includes('goal')){
-        body = `<div class="event-card-line event-goal-line" style="margin-top:8px"><span class="goal-badge">⚽ Gol</span><span>${esc(e.player?.name||'')}</span>${e.assist?.name?`<span class="goal-assist">👟 ${esc(e.assist.name)}</span>`:''}</div>`;
+        body = `<div class="event-card-line event-goal-line" style="margin-top:8px"><span class="goal-badge">⚽ Gol</span><span>${esc(e.player?.name||'')}</span>${e.assist?.name?`<span class="goal-assist">• ${esc(e.assist.name)}</span>`:''}</div>`;
       } else {
-        body = `<div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • 👟 '+esc(e.assist.name):''}</div>`;
+        body = `<div style="margin-top:6px">${esc(e.player?.name||'')}${e.assist?.name?' • • '+esc(e.assist.name):''}</div>`;
       }
       return `<div class="event"><div class="rowflex"><strong>${tm} ${iconForEvent(e.type,e.detail)}</strong><span class="muted small">${esc(e.team?.name||'')}</span></div>${body}<div class="muted small">${label}${extra}</div></div>`;
     }).join(''):`<div class="muted small">Nessun evento disponibile.</div>`}</div>${statsHtml}</div><div>${lineupsHtml}</div></div></div>`;
